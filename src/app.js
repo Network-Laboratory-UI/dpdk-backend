@@ -8,6 +8,7 @@ const app = express();
 
 // Use bodyParser to parse JSON bodies
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 // Connect to the database
 db.authenticate()
