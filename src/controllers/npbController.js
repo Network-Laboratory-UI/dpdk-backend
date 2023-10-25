@@ -87,6 +87,9 @@ async function createNpbPacket(req, res) {
       throughput
     } = req.body;
 
+    // Convert the time to Indonesia Time
+    const timeInIndonesia = npbUtils.convertToIndonesiaTime(new Date(time));
+
     // Check if the npb with provided npb_id exists
     const existingNpb = await npbService.getNpbById(npb_id);
     if (!existingNpb) {
@@ -101,7 +104,7 @@ async function createNpbPacket(req, res) {
       tx_count,
       rx_size,
       tx_size,
-      time,
+      time: timeInIndonesia,
       throughput
     });
 

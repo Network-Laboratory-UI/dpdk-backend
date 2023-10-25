@@ -92,6 +92,9 @@ async function createPsPacket(req, res) {
       tcp_reset_count
     } = req.body;
 
+    // Convert the time to Indonesia Time
+    const timeInIndonesia = psUtils.convertToIndonesiaTime(new Date(time));
+
     // Check if the ps with provided ps_id exists
     const existingPs = await psService.getPSById(ps_id);
     if (!existingPs) {
@@ -106,7 +109,7 @@ async function createPsPacket(req, res) {
       tx_count,
       rx_size,
       tx_size,
-      time,
+      time: timeInIndonesia,
       http_hit_count,
       https_hit_count,
       tcp_reset_count
