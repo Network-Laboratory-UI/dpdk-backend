@@ -1,4 +1,5 @@
 const psService = require("../services/psServices");
+const psUtils = require("../utils/psUtils")
 
 async function getAllPSs(req, res) {
   try {
@@ -78,47 +79,61 @@ async function getPSByLocation(req, res) {
 
 async function createPsPacket(req, res) {
   try {
-    const {
-      ps_id,
-      http_count,
-      https_count,
-      rx_count,
-      tx_count,
-      rx_size,
-      tx_size,
-      time,
-      http_hit_count,
-      https_hit_count,
-      tcp_reset_count
-    } = req.body;
+    const packets = req.body; // An array of JSON objects
 
-    // Convert the time to Indonesia Time
-    const timeInIndonesia = psUtils.convertToIndonesiaTime(new Date(time));
-
-    // Check if the ps with provided ps_id exists
-    const existingPs = await psService.getPSById(ps_id);
-    if (!existingPs) {
-      return res.status(404).json({ error: `Ps with id ${ps_id} not found` });
+    // Validate that packets is an array
+    if (!Array.isArray(packets)) {
+      return res.status(400).json({ error: "Packets must be provided as an array" });
     }
 
-    const psPacket = await psService.createPsPacket({
-      ps_id,
-      http_count,
-      https_count,
-      rx_count,
-      tx_count,
-      rx_size,
-      tx_size,
-      time: timeInIndonesia,
-      http_hit_count,
-      https_hit_count,
-      tcp_reset_count
-    });
+    // Create an array to store the results
+    const results = [];
 
-    console.log("PsPacket created:", psPacket);
-    res.json(psPacket);
+    for (const packet of packets) {
+      const {
+        ps_id,
+        http_count,
+        https_count,
+        rx_count,
+        tx_count,
+        rx_size,
+        tx_size,
+        time,
+        http_hit_count,
+        https_hit_count,
+        tcp_reset_count
+      } = packet;
+
+      // Convert the time to Indonesia Time
+      const timeInIndonesia = psUtils.convertToIndonesiaTime(new Date(time));
+
+      // Check if the ps with the provided ps_id exists
+      const existingPs = await psService.getPSById(ps_id);
+      if (!existingPs) {
+        return res.status(404).json({ error: `Ps with id ${ps_id} not found` });
+      }
+
+      const psPacket = await psService.createPsPacket({
+        ps_id,
+        http_count,
+        https_count,
+        rx_count,
+        tx_count,
+        rx_size,
+        tx_size,
+        time: timeInIndonesia,
+        http_hit_count,
+        https_hit_count,
+        tcp_reset_count
+      });
+
+      results.push(psPacket);
+    }
+
+    console.log("PsPackets created:", results);
+    res.json(results);
   } catch (error) {
-    console.error("Error creating PsPacket:", error);
+    console.error("Error creating PsPackets:", error);
     res.status(500).json({ error: error.message });
   }
 }
