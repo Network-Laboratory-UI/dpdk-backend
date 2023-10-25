@@ -75,43 +75,61 @@ async function getNpbByLocation(req, res) {
 
 async function createNpbPacket(req, res) {
   try {
-    const {
-      npb_id,
-      http_count,
-      https_count,
-      rx_count,
-      tx_count,
-      rx_size,
-      tx_size,
-      time,
-      throughput
-    } = req.body;
+    const packets = req.body; // An array of JSON objects
 
-    // Check if the npb with provided npb_id exists
-    const existingNpb = await npbService.getNpbById(npb_id);
-    if (!existingNpb) {
-      return res.status(404).json({ error: `Npb with id ${npb_id} not found` });
+    // Validate that packets is an array
+    if (!Array.isArray(packets)) {
+      return res.status(400).json({ error: "Packets must be provided as an array" });
     }
 
-    const npbPacket = await npbService.createNpbPacket({
-      npb_id,
-      http_count,
-      https_count,
-      rx_count,
-      tx_count,
-      rx_size,
-      tx_size,
-      time,
-      throughput
-    });
+    // Create an array to store the results
+    const results = [];
 
-    console.log("NpbPacket created:", npbPacket);
-    res.json(npbPacket);
+    for (const packet of packets) {
+      const {
+        npb_id,
+        http_count,
+        https_count,
+        rx_count,
+        tx_count,
+        rx_size,
+        tx_size,
+        time,
+        throughput
+      } = packet;
+
+      // Convert the time to Indonesia Time
+      const timeInIndonesia = npbUtils.convertToIndonesiaTime(new Date(time));
+
+      // Check if the npb with the provided npb_id exists
+      const existingNpb = await npbService.getNpbById(npb_id);
+      if (!existingNpb) {
+        return res.status(404).json({ error: `Npb with id ${npb_id} not found` });
+      }
+
+      const npbPacket = await npbService.createNpbPacket({
+        npb_id,
+        http_count,
+        https_count,
+        rx_count,
+        tx_count,
+        rx_size,
+        tx_size,
+        time: timeInIndonesia,
+        throughput
+      });
+
+      results.push(npbPacket);
+    }
+
+    console.log("NpbPackets created:", results);
+    res.json(results);
   } catch (error) {
-    console.error("Error creating NpbPacket:", error);
+    console.error("Error creating NpbPackets:", error);
     res.status(500).json({ error: error.message });
   }
 }
+
 
 async function getNpbPacketByNpbId(req, res) {
   const npbId = req.params.id;
