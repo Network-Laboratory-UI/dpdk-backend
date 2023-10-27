@@ -130,8 +130,8 @@ async function createPsPacket(req, res) {
       results.push(psPacket);
     }
 
-    console.log("PsPackets created:", results);
-    res.json(results);
+    //send success message
+    res.status(200).json({message: "Success"});
   } catch (error) {
     console.error("Error creating PsPackets:", error);
     res.status(500).json({ error: error.message });

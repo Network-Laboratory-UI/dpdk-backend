@@ -122,8 +122,8 @@ async function createNpbPacket(req, res) {
       results.push(npbPacket);
     }
 
-    console.log("NpbPackets created:", results);
-    res.json(results);
+    //send success message
+    res.status(200).json({message: "Success"});
   } catch (error) {
     console.error("Error creating NpbPackets:", error);
     res.status(500).json({ error: error.message });
