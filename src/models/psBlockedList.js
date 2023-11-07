@@ -2,8 +2,8 @@ const { Sequelize, DataTypes } = require("sequelize");
 const db = require("../config/dpdkDatabase");
 const Ps = require("./ps"); // Import Ps model
 
-const PsPacket = db.define("ps_packet", {
-  packet_id: {
+const PsBlockedList = db.define("ps_blocked_list", {
+  id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
@@ -16,36 +16,20 @@ const PsPacket = db.define("ps_packet", {
       key: 'id'
     },
   },
-  tcp_rst_to_server: {
+  domain: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  ip_add: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  hit_count: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  tcp_rst_to_client: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  rx_count: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  tx_count: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  rx_size: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  tx_size: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  time: {
-    type: DataTypes.DATE,
-    allowNull: false
-  }
 }, { 
-  tableName: "ps_packet",
+  tableName: "ps_blocked_list",
   timestamps: false
 });
 
@@ -58,4 +42,4 @@ const PsPacket = db.define("ps_packet", {
   }
 })();
 
-module.exports = PsPacket;
+module.exports = PsBlockedList;
