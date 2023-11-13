@@ -33,29 +33,25 @@ async function getPSByLocation(location) {
 
 async function createPsPacket({
     ps_id,
-    http_count,
-    https_count,
+    rst_client,
+    rst_server,
     rx_count,
     tx_count,
     rx_size,
     tx_size,
     time,
-    http_hit_count,
-    https_hit_count,
-    tcp_reset_count
+    throughput,
 }) {
   return await PsPacket.create({
     ps_id,
-    http_count,
-    https_count,
+    rst_client,
+    rst_server,
     rx_count,
     tx_count,
     rx_size,
     tx_size,
     time,
-    http_hit_count,
-    https_hit_count,
-    tcp_reset_count
+    throughput,
   });
 }
 

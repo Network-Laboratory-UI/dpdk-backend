@@ -16,11 +16,11 @@ const PsPacket = db.define("ps_packet", {
       key: 'id'
     },
   },
-  tcp_rst_to_server: {
+  rst_client: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  tcp_rst_to_client: {
+  rst_server: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
@@ -43,7 +43,11 @@ const PsPacket = db.define("ps_packet", {
   time: {
     type: DataTypes.DATE,
     allowNull: false
-  }
+  },
+  throughput: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
 }, { 
   tableName: "ps_packet",
   timestamps: false

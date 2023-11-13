@@ -92,16 +92,14 @@ async function createPsPacket(req, res) {
     for (const packet of packets) {
       const {
         ps_id,
-        http_count,
-        https_count,
+        rst_client,
+        rst_server,
         rx_count,
         tx_count,
         rx_size,
         tx_size,
         time,
-        http_hit_count,
-        https_hit_count,
-        tcp_reset_count
+        throughput,
       } = packet;
 
       // Convert the time to Indonesia Time
@@ -115,16 +113,14 @@ async function createPsPacket(req, res) {
 
       const psPacket = await psService.createPsPacket({
         ps_id,
-        http_count,
-        https_count,
+        rst_client,
+        rst_server,
         rx_count,
         tx_count,
         rx_size,
         tx_size,
         time: timeInIndonesia,
-        http_hit_count,
-        https_hit_count,
-        tcp_reset_count
+        throughput,
       });
 
       results.push(psPacket);
