@@ -153,6 +153,39 @@ async function getNpbPacketByNpbId(req, res) {
   }
 }
 
+async function createConfig(req, res) {
+  try {
+    const { Id, txRingSize, numMbufs, mbufCacheSize, burstSize, maxTcpPayloadLen, statFile, statFileExt, timerPeriodStats, timerPeriodSend, maxPacketLen, rxRingSize } = req.body;
+
+    if (!Id || !txRingSize || !numMbufs || !mbufCacheSize || !burstSize || !maxTcpPayloadLen || !statFile || !statFileExt || !timerPeriodStats || !timerPeriodSend || !maxPacketLen || !rxRingSize) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const configData = await npbService.createConfig(Id, txRingSize, numMbufs, mbufCacheSize, burstSize, maxTcpPayloadLen, statFile, statFileExt, timerPeriodStats, timerPeriodSend, maxPacketLen, rxRingSize);
+    res.json(configData);
+  } catch (error) {
+    console.error("Error creating config data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function getConfigById(req, res) {
+  const Id = req.params.id;
+
+  try {
+    const configData = await npbService.getConfigById(Id);
+
+    if (!configData) {
+      return res.status(404).json({ error: `Config Data with id ${Id} not found` });
+    }
+
+    res.json(configData);
+  } catch (error) {
+    console.error("Error getting Config Data by ID:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 module.exports = {
   getAllNpbs,
   createNpb,
@@ -161,4 +194,6 @@ module.exports = {
   getNpbByLocation,
   createNpbPacket,
   getNpbPacketByNpbId,
+  createConfig,
+  getConfigById,
 };

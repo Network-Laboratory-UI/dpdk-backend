@@ -16,8 +16,8 @@ const Npb = db.define("npb", {
     allowNull: false,
   },
   status: {
-    type: DataTypes.ENUM("Connected", "Disconnected"),
-    defaultValue: "Disconnected",
+    type: DataTypes.ENUM("Active", "Inactive"),
+    defaultValue: "Inactive",
     allowNull: false,
   },
   createdAt: {
@@ -34,5 +34,5 @@ const Npb = db.define("npb", {
   tableName: "npb",
 });
 
-db.sync()
+db.sync();
 module.exports = Npb;

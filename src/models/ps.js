@@ -16,8 +16,8 @@ const Ps = db.define("ps", {
     allowNull: false,
   },
   status: {
-    type: DataTypes.ENUM("Connected", "Disconnected"),
-    defaultValue: "Disconnected",
+    type: DataTypes.ENUM("Active", "Inactive"),
+    defaultValue: "Inactive",
     allowNull: false,
   },
   createdAt: {
