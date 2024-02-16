@@ -1,6 +1,7 @@
 const Npb = require("../models/npb");
 const npbUtils = require("../utils/npbUtils");
 const NpbPacket = require("../models/npbPacket");
+const Config = require("../models/configData");
 
 
 async function getAllModifiedNpbs() {
@@ -61,6 +62,43 @@ async function getNpbPacketById(npbId) {
   }
 }
 
+
+async function createConfig(Id, txRingSize, numMbufs, mbufCacheSize, burstSize, maxTcpPayloadLen, statFile, statFileExt, timerPeriodStats, timerPeriodSend, maxPacketLen, rxRingSize) {
+  try {
+    const config = await Config.create({
+      Id,
+      txRingSize,
+      numMbufs,
+      mbufCacheSize,
+      burstSize,
+      maxTcpPayloadLen,
+      statFile,
+      statFileExt,
+      timerPeriodStats,
+      timerPeriodSend,
+      maxPacketLen,
+      rxRingSize
+    });
+    return config;
+  } catch (error) {
+    throw new Error('Error creating config');
+  }
+}
+
+async function getConfigById(Id) {
+  try {
+    const config = await Config.findOne({
+      where: {
+        Id
+      }
+    });
+    return config;
+  } catch (error) {
+    throw new Error('Error finding config by ID');
+  }
+}
+
+
 module.exports = {
   getAllModifiedNpbs,
   getNpbById,
@@ -69,4 +107,6 @@ module.exports = {
   getNpbByLocation,
   createNpbPacket,
   getNpbPacketById,
+  createConfig,
+  getConfigById,
 };
