@@ -16,4 +16,8 @@ router.post("/location", psController.getPSByLocation);
 router.post("/ps-packet", psController.createPsPacket);
 router.get('/ps-packet/:id', psController.getPsPacketByPsId);
 
+// Route for Hearbeat
+router.post("/heartbeat", psController.createPsHeartbeat);
+router.get('/heartbeat/:id', psController.getPsHeartbeatByPsId);
+
 module.exports = router;

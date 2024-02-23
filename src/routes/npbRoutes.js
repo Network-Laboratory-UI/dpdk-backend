@@ -20,5 +20,9 @@ router.get('/npb-packet/:id', npbController.getNpbPacketByNpbId);
 router.post("/config", npbController.createConfig);
 router.get('/config/:id', npbController.getConfigById);
 
+// Route for Hearbeat
+router.post("/heartbeat", npbController.createNpbHeartbeat);
+router.get('/heartbeat/:id', npbController.getNpbHeartbeatByNpbId);
+
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const Ps = require("../models/ps");
 const psUtils = require("../utils/psUtils");
 const PsPacket = require("../models/psPacket");
+const PsHeartbeat = require("../models/psHeartbeat");
 
 const getAllModifiedPSs = async () => {
   const psInstances = await Ps.findAll();
@@ -68,13 +69,86 @@ async function getPsPacketById(psId) {
   }
 }
 
+async function createHeartbeat(ps_id, time) {
+  try {
+    console.log(ps_id, time);
+    const heartbeat = await PsHeartbeat.create({
+      ps_id,
+      time,
+    });
+    return heartbeat;
+  } catch (error) {
+    throw new Error("Error creating heartbeat");
+  }
+}
+
+async function getAllHeartbeatbyPsId(ps_id) {
+  try {
+    const heartbeat = await PsHeartbeat.findAll({
+      where: {
+        ps_id,
+      },
+    });
+    return heartbeat;
+  } catch (error) {
+    throw new Error("Error finding heartbeat by ps ID");
+  }
+}
+
+async function getPsHeartbeatByPsId(ps_id) {
+  try {
+    // Retrieve all heartbeat records for the specified ps_id
+    const heartbeats = await PsHeartbeat.findAll({
+      where: {
+        ps_id,
+      },
+    });
+
+    // Check if any heartbeat records exist
+    if (heartbeats.length === 0) {
+      // No heartbeat records found, return false
+      return false;
+    }
+
+    // Extract dataValues from each heartbeat
+    const heartbeatDataValues = heartbeats.map(
+      (heartbeat) => heartbeat.dataValues
+    );
+
+    // Check if any alive heartbeats found
+    const isAlive = psUtils.checkHeartbeat(heartbeatDataValues);
+    return isAlive;
+  } catch (error) {
+    throw new Error("Error finding heartbeat by ps ID");
+  }
+}
+
+async function updatePsStatus(psId, status) {
+  try {
+    const ps = await Ps.findByPk(psId);
+    if (!ps) {
+      return null;
+    }
+    ps.status = status;
+    ps.updatedAt = new Date(); // Update the updatedAt field
+    await ps.save();
+    return ps;
+  } catch (error) {
+    throw new Error("Error updating ps status");
+  }
+}
+
 module.exports = {
   getAllModifiedPSs,
   getPSById,
   createPS,
-  getPSByStatus, // New function to get PS by status
-  getPSByLocation, // New function to get PS by location
+  getPSByStatus,
+  getPSByLocation,
   createPsPacket,
   getPsPacketById,
+  createHeartbeat,
+  getAllHeartbeatbyPsId,
+  getPsHeartbeatByPsId,
+  updatePsStatus,
 };
 

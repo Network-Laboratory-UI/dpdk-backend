@@ -34,5 +34,5 @@ const Npb = db.define("npb", {
   tableName: "npb",
 });
 
-db.sync();
+db.sync({force: true});
 module.exports = Npb;

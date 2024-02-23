@@ -18,7 +18,9 @@ async function getPSById(req, res) {
     const psInstance = await psService.getPSById(psId);
 
     if (!psInstance) {
-      return res.status(404).json({ error: "PS instance not found" });
+      return res
+        .status(404)
+        .json({ error: `PS instance with ID ${psId} not found` });
     }
 
     res.json(psInstance);
@@ -37,7 +39,6 @@ async function createPSs(req, res) {
     }
 
     const psInstance = await psService.createPS(name, location);
-    console.log("PS instance created:", psInstance);
     res.json(psInstance);
   } catch (error) {
     console.error("Error creating PS instance:", error);
@@ -102,9 +103,6 @@ async function createPsPacket(req, res) {
         throughput,
       } = packet;
 
-      // Convert the time to Indonesia Time
-      const timeInIndonesia = psUtils.convertToIndonesiaTime(new Date(time));
-
       // Check if the ps with the provided ps_id exists
       const existingPs = await psService.getPSById(ps_id);
       if (!existingPs) {
@@ -119,7 +117,7 @@ async function createPsPacket(req, res) {
         tx_count,
         rx_size,
         tx_size,
-        time: timeInIndonesia,
+        time,
         throughput,
       });
 
@@ -156,6 +154,106 @@ async function getPsPacketByPsId(req, res) {
   }
 }
 
+async function createPsHeartbeat(req, res) {
+  try {
+    const heartbeats = req.body;
+
+    // Validate that heartbeats is an array
+    if (!Array.isArray(heartbeats)) {
+      return res
+        .status(400)
+        .json({ error: "Heartbeats must be provided as an array" });
+    }
+
+    // Create an array to store the results
+    const results = [];
+
+    // Iterate over each heartbeat object in the array
+    for (const heartbeat of heartbeats) {
+      const { ps_id, time } = heartbeat;
+
+      // Check if the Ps with the provided Ps_id exists
+      const existingPs = await psService.getPSById(ps_id);
+      if (!existingPs) {
+        return res.status(404).json({ error: `Ps with id ${ps_id} not found` });
+      }
+
+      // Create a new heartbeat record
+      const newHeartbeat = await psService.createHeartbeat(ps_id, time);
+      results.push(newHeartbeat);
+    }
+
+    // Send success response with created heartbeat records
+    res.status(201).json({
+      message: "Heartbeats created successfully",
+      heartbeats: results,
+    });
+  } catch (error) {
+    console.error("Error creating Ps heartbeat:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function getPsHeartbeatByPsId(req, res) {
+  const psId = req.params.id;
+
+  // Check if psId is null or undefined
+  if (!psId) {
+    return res.status(400).json({ error: "Ps ID is required." });
+  }
+
+  try {
+    const psHeartbeat = await psService.getAllHeartbeatbyPsId(psId);
+
+    if (psHeartbeat.length === 0) {
+      return res.json({
+        message: `No ps Heartbeat found for ps with id ${psId}`,
+      });
+    }
+
+    res.json(psHeartbeat);
+  } catch (error) {
+    console.error("Error getting ps_heartbeat:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function performHeartbeatCheck() {
+  try {
+    console.log("Running heartbeat check...");
+    // Fetch all modified ps objects
+    let modifiedPss = await psService.getAllModifiedPSs();
+
+    // Sort modified ps objects by ID to ensure consistent processing order
+    modifiedPss.sort((a, b) => a.id - b.id);
+
+    // Create an array of promises for updating ps statuses
+    const updatePromises = modifiedPss.map(async (ps) => {
+      const ps_id = ps.id;
+      const isHeartbeatAlive = await psService.getPsHeartbeatByPsId(ps_id);
+      console.log(`Heartbeat for ps_id ${ps_id} is alive:`, isHeartbeatAlive);
+
+      // Update ps status based on heartbeat check result
+      if (isHeartbeatAlive) {
+        // Heartbeat is alive, set status to Active
+        await psService.updatePsStatus(ps_id, "Active");
+        console.log(`Status updated for ps_id ${ps_id} to Active`);
+      } else {
+        // Heartbeat is not alive, set status to Inactive
+        await psService.updatePsStatus(ps_id, "Inactive");
+        console.log(`Status updated for ps_id ${ps_id} to Inactive`);
+      }
+    });
+
+    // Wait for all update promises to complete
+    await Promise.all(updatePromises);
+
+    console.log("All ps statuses updated successfully.");
+  } catch (error) {
+    console.error("Error in heartbeat check:", error);
+  }
+}
+
 
 module.exports = {
   getAllPSs,
@@ -165,6 +263,9 @@ module.exports = {
   getPSByLocation,
   createPsPacket,
   getPsPacketByPsId,
+  createPsHeartbeat,
+  getPsHeartbeatByPsId,
+  performHeartbeatCheck,
 };
 
 
