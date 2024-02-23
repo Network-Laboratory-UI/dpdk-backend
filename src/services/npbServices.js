@@ -152,36 +152,6 @@ async function getAllHeartbeatbyNpbId(npb_id) {
   }
 }
 
-
-
-    
-
-// async function getNpbHeartbeatByNpbId(npb_id) {
-//   try {
-//     // Retrieve all heartbeat records for the specified npb_id
-//     const heartbeats = await NpbHeartbeat.findAll({
-//       where: {
-//         npb_id,
-//       },
-//     });
-
-//     // Check if any heartbeat records exist
-//     if (heartbeats.length === 0) {
-//       // No heartbeat records found, return false
-//       return false;
-//     }
-
-//     // Check each heartbeat record
-//     const aliveHeartbeats = heartbeats.filter((heartbeat) => {
-//       return npbUtils.checkHeartbeat(heartbeat.time);
-//     });
-
-//     return aliveHeartbeats; // Return true if any alive heartbeats found
-//   } catch (error) {
-//     throw new Error("Error finding heartbeat by npb ID");
-//   }
-// }
-
 async function getNpbHeartbeatByNpbId(npb_id) {
   try {
     // Retrieve all heartbeat records for the specified npb_id
