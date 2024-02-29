@@ -1,10 +1,11 @@
 const psService = require("../services/psServices");
-const psUtils = require("../utils/psUtils")
+const psUtils = require("../utils/psUtils");
+const producer = require("../config/kafkaConfig");
 
 async function getAllPSs(req, res) {
   try {
     const psInstances = await psService.getAllModifiedPSs();
-    res.json(psInstances);
+    res.json(psInstances.sort((a, b) => a.id - b.id));
   } catch (error) {
     console.error("Error getting PS instances:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -34,7 +35,7 @@ async function createPSs(req, res) {
   try {
     const { name, location } = req.body;
 
-    if (!name || !location ) {
+    if (!name || !location) {
       return res.status(400).json({ error: "Name, location are required" });
     }
 
@@ -84,7 +85,9 @@ async function createPsPacket(req, res) {
 
     // Validate that packets is an array
     if (!Array.isArray(packets)) {
-      return res.status(400).json({ error: "Packets must be provided as an array" });
+      return res
+        .status(400)
+        .json({ error: "Packets must be provided as an array" });
     }
 
     // Create an array to store the results
@@ -93,12 +96,24 @@ async function createPsPacket(req, res) {
     for (const packet of packets) {
       const {
         ps_id,
-        rst_client,
-        rst_server,
-        rx_count,
-        tx_count,
-        rx_size,
-        tx_size,
+        rstClient,
+        rstServer,
+        rx_0_count,
+        tx_0_count,
+        rx_0_size,
+        tx_0_size,
+        rx_0_drop,
+        rx_0_error,
+        tx_0_error,
+        rx_0_mbuf,
+        rx_1_count,
+        tx_1_count,
+        rx_1_size,
+        tx_1_size,
+        rx_1_drop,
+        rx_1_error,
+        tx_1_error,
+        rx_1_mbuf,
         time,
         throughput,
       } = packet;
@@ -111,12 +126,24 @@ async function createPsPacket(req, res) {
 
       const psPacket = await psService.createPsPacket({
         ps_id,
-        rst_client,
-        rst_server,
-        rx_count,
-        tx_count,
-        rx_size,
-        tx_size,
+        rstClient,
+        rstServer,
+        rx_0_count,
+        tx_0_count,
+        rx_0_size,
+        tx_0_size,
+        rx_0_drop,
+        rx_0_error,
+        tx_0_error,
+        rx_0_mbuf,
+        rx_1_count,
+        tx_1_count,
+        rx_1_size,
+        tx_1_size,
+        rx_1_drop,
+        rx_1_error,
+        tx_1_error,
+        rx_1_mbuf,
         time,
         throughput,
       });
@@ -125,7 +152,7 @@ async function createPsPacket(req, res) {
     }
 
     //send success message
-    res.status(200).json({message: "Success"});
+    res.status(200).json({ message: "Success" });
   } catch (error) {
     console.error("Error creating PsPackets:", error);
     res.status(500).json({ error: error.message });
@@ -137,20 +164,53 @@ async function getPsPacketByPsId(req, res) {
 
   // Check if psId is null or undefined
   if (!psId) {
-    return res.status(400).json({ error: 'Ps ID is required.' });
+    return res.status(400).json({ error: "Ps ID is required." });
   }
 
   try {
     const psPackets = await psService.getPsPacketById(psId);
 
     if (psPackets.length === 0) {
-      return res.json({ message: `No Ps Packets found for Ps with id ${psId}` });
+      return res.json({
+        message: `No Ps Packets found for Ps with id ${psId}`,
+      });
     }
 
     res.json(psPackets);
   } catch (error) {
-    console.error('Error getting ps_packet:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error getting ps_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+// Updated controller function to handle pagination with parameters in the request body
+async function getPsPacketByPsIdWithPagination(req, res) {
+  const psId = req.params.id;
+  const page = parseInt(req.query.page);
+  const pageSize = parseInt(req.query.pageSize);
+
+  // Check if psId is null or undefined
+  if (!psId) {
+    return res.status(400).json({ error: "Ps ID is required." });
+  }
+
+  try {
+    const psPackets = await psService.getPsPacketByIdWithPagination(
+      psId,
+      page,
+      pageSize
+    ); // Pass pagination parameters to service
+
+    if (psPackets.length === 0) {
+      return res.json({
+        message: `No Ps Packets found for Ps with id ${psId}`,
+      });
+    }
+
+    res.json(psPackets);
+  } catch (error) {
+    console.error("Error getting ps_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
@@ -254,6 +314,121 @@ async function performHeartbeatCheck() {
   }
 }
 
+// Controller function to create a PS blocked list
+async function createPsBlockedList(req, res) {
+  try {
+    const { ps_id, name, domain, ip_add } = req.body;
+    // Check if the Ps with the provided Ps_id exists
+    const existingPs = await psService.getPSById(ps_id);
+    if (!existingPs) {
+      return res.status(404).json({ error: `Ps with id ${ps_id} not found` });
+    }
+
+    // Call the service function to create the PS blocked list
+    const createdBlockedList = await psService.createPsBlockedList(
+      ps_id,
+      name,
+      domain,
+      ip_add
+    );
+
+    producer.send({
+      topic: "dpdk-blocked-list",
+      messages: [
+        {
+          key: "List",
+          value: JSON.stringify({createdBlockedList, type: "create"})
+        },
+      ],
+    });
+
+    res.status(200).json({ message: "Success", createdBlockedList });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+    console.error("Error creating PS blocked list:", error);
+    throw new Error("Failed to create PS blocked list");
+  }
+}
+
+async function getPsBlockedList(req, res) {
+  try {
+    const psBlockedList = await psService.getAllPsBlockedList();
+
+    if (psBlockedList.length === 0) {
+      return res.json({
+        message: `No PS blocked list found`,
+      });
+    }
+
+    res.json(psBlockedList.sort((a, b) => a.id - b.id));
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function deletePsBlockedList(req, res) {
+  try {
+    const id = req.params.id;
+    const deletedBlockedList = await psService.deletePsBlockedList(id);
+    if (!deletedBlockedList) {
+      return res
+        .status(404)
+        .json({ error: `Blocked list with id ${id} not found` });
+    }
+
+    producer.send({
+      topic: "dpdk-blocked-list",
+      messages: [
+        {
+          key: "List",
+          value: JSON.stringify({ deletedBlockedList, type: "delete" }),
+        },
+      ],
+    });
+    res.status(200).json({
+      message: "Blocked list successfully deleted",
+      deletedBlockedList,
+    });
+  } catch (error) {
+    console.error("Error deleting blocked list:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function updatePsBlockedList(req, res) {
+  try {
+    const id = req.params.id;
+    const { name, domain, ip_add } = req.body;
+    const updatedBlockedList = await psService.updatePsBlockedList(
+      id,
+      name,
+      domain,
+      ip_add
+    );
+    if (!updatedBlockedList) {
+      return res
+        .status(404)
+        .json({ error: `Blocked list with id ${id} not found` });
+    }
+    producer.send({
+      topic: "dpdk-blocked-list",
+      messages: [
+        {
+          key: "List",
+          value: JSON.stringify({ updatedBlockedList, type: "update" }),
+        },
+      ],
+    });
+    res.status(200).json({
+      message: "Blocked list successfully updated",
+      updatedBlockedList,
+    });
+  } catch (error) {
+    console.error("Error updating blocked list:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 
 module.exports = {
   getAllPSs,
@@ -263,9 +438,12 @@ module.exports = {
   getPSByLocation,
   createPsPacket,
   getPsPacketByPsId,
+  getPsPacketByPsIdWithPagination,
   createPsHeartbeat,
   getPsHeartbeatByPsId,
   performHeartbeatCheck,
+  createPsBlockedList,
+  getPsBlockedList,
+  updatePsBlockedList,
+  deletePsBlockedList,
 };
-
-

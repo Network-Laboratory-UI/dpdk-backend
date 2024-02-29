@@ -2,6 +2,7 @@ const Ps = require("../models/ps");
 const psUtils = require("../utils/psUtils");
 const PsPacket = require("../models/psPacket");
 const PsHeartbeat = require("../models/psHeartbeat");
+const PsBlockedList = require("../models/psBlockedList");
 
 const getAllModifiedPSs = async () => {
   const psInstances = await Ps.findAll();
@@ -19,7 +20,7 @@ const getPSById = async (psId) => {
 };
 
 const createPS = async (name, location) => {
-  return await Ps.create({ name, location});
+  return await Ps.create({ name, location });
 };
 
 async function getPSByStatus(status) {
@@ -33,39 +34,84 @@ async function getPSByLocation(location) {
 }
 
 async function createPsPacket({
-    ps_id,
-    rst_client,
-    rst_server,
-    rx_count,
-    tx_count,
-    rx_size,
-    tx_size,
-    time,
-    throughput,
+  ps_id,
+  rstClient,
+  rstServer,
+  rx_0_count,
+  tx_0_count,
+  rx_0_size,
+  tx_0_size,
+  rx_0_drop,
+  rx_0_error,
+  tx_0_error,
+  rx_0_mbuf,
+  rx_1_count,
+  tx_1_count,
+  rx_1_size,
+  tx_1_size,
+  rx_1_drop,
+  rx_1_error,
+  tx_1_error,
+  rx_1_mbuf,
+  time,
+  throughput,
 }) {
-  return await PsPacket.create({
-    ps_id,
-    rst_client,
-    rst_server,
-    rx_count,
-    tx_count,
-    rx_size,
-    tx_size,
-    time,
-    throughput,
-  });
+  try {
+    return await PsPacket.create({
+      ps_id,
+      rstClient,
+      rstServer,
+      rx_0_count,
+      tx_0_count,
+      rx_0_size,
+      tx_0_size,
+      rx_0_drop,
+      rx_0_error,
+      tx_0_error,
+      rx_0_mbuf,
+      rx_1_count,
+      tx_1_count,
+      rx_1_size,
+      tx_1_size,
+      rx_1_drop,
+      rx_1_error,
+      tx_1_error,
+      rx_1_mbuf,
+      time,
+      throughput,
+    });
+  } catch (error) {
+    throw new Error("Error creating ps_packet");
+  }
 }
 
 async function getPsPacketById(psId) {
   try {
     const psPackets = await PsPacket.findAll({
       where: {
-        ps_id: psId
-      }
+        ps_id: psId,
+      },
     });
     return psPackets;
   } catch (error) {
-    throw new Error('Error finding ps_packet by ps ID');
+    throw new Error("Error finding ps_packet by ps ID");
+  }
+}
+
+// Updated service function to handle pagination
+async function getPsPacketByIdWithPagination(psId, page, pageSize) {
+  try {
+    const offset = (page - 1) * pageSize; // Calculate offset based on page number and pageSize
+    const psPackets = await PsPacket.findAll({
+      where: {
+        ps_id: psId,
+      },
+      offset, // Apply offset
+      limit: pageSize, // Apply limit
+    });
+    return psPackets;
+  } catch (error) {
+    throw new Error("Error finding ps_packet by ps ID");
   }
 }
 
@@ -138,6 +184,76 @@ async function updatePsStatus(psId, status) {
   }
 }
 
+// Service function to create a PS blocked list
+async function createPsBlockedList(ps_id, name, domain, ip_add) {
+  try {
+    // Create the PS blocked list record
+    const createdBlockedList = await PsBlockedList.create({
+      ps_id,
+      name,
+      domain,
+      ip_add,
+    });
+    return createdBlockedList; // Return the created blocked list object
+  } catch (error) {
+    throw new Error("Failed to create PS blocked list");
+  }
+}
+
+async function getAllPsBlockedList() {
+  try {
+    // Retrieve all blocked list records
+    const blockedList = await PsBlockedList.findAll();
+
+    // Check if any blocked list records exist
+    if (blockedList.length === 0) {
+      // No blocked list records found, return false
+      return blockedList;
+    }
+
+    return blockedList;
+  } catch (error) {
+    throw new Error("Error finding all blocked list");
+  }
+}
+
+async function deletePsBlockedList(id) {
+  try {
+    // Find the blocked list record by id
+    const blockedList = await PsBlockedList.findByPk(id);
+    // Check if the blocked list record exists
+    if (!blockedList) {
+      return blockedList;
+    }
+    // Delete the blocked list record
+    await blockedList.destroy();
+    return blockedList;
+  } catch (error) {
+    console.error("Error deleting blocked list:", error);
+    throw new Error("Error deleting blocked list");
+  }
+}
+
+async function updatePsBlockedList(id, name, domain, ip_add) {
+  try {
+    // Find the blocked list record by id
+    const blockedList = await PsBlockedList.findByPk(id);
+    // Check if the blocked list record exists
+    if (!blockedList) {
+      return blockedList;
+    }
+    // Update the blocked list record
+    blockedList.name = name;
+    blockedList.domain = domain;
+    blockedList.ip_add = ip_add;
+    await blockedList.save();
+    return blockedList;
+  } catch (error) {
+    console.error("Error updating blocked list:", error);
+    throw new Error("Error updating blocked list");
+  }
+}
+
 module.exports = {
   getAllModifiedPSs,
   getPSById,
@@ -146,9 +262,13 @@ module.exports = {
   getPSByLocation,
   createPsPacket,
   getPsPacketById,
+  getPsPacketByIdWithPagination,
   createHeartbeat,
   getAllHeartbeatbyPsId,
   getPsHeartbeatByPsId,
   updatePsStatus,
+  createPsBlockedList,
+  getAllPsBlockedList,
+  updatePsBlockedList,
+  deletePsBlockedList,
 };
-

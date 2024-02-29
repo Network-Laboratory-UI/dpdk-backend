@@ -4,7 +4,6 @@ const NpbPacket = require("../models/npbPacket");
 const Config = require("../models/configData");
 const NpbHeartbeat = require("../models/npbHeartbeat");
 
-
 async function getAllModifiedNpbs() {
   const npbs = await Npb.findAll();
   return npbUtils.modifyNpbDates(npbs);
@@ -50,51 +49,85 @@ async function createNpbPacket({
   time,
   throughput,
 }) {
-  return await NpbPacket.create({
-    npb_id,
-    http_count,
-    https_count,
-    no_match,
-    rx_0_count,
-    tx_0_count,
-    rx_0_size,
-    tx_0_size,
-    rx_0_drop,
-    rx_0_error,
-    tx_0_error,
-    rx_0_mbuf,
-    rx_1_count,
-    tx_1_count,
-    rx_1_size,
-    tx_1_size,
-    rx_1_drop,
-    rx_1_error,
-    tx_1_error,
-    rx_1_mbuf,
-    time,
-    throughput,
-  });
+  try {
+    return await NpbPacket.create({
+      npb_id,
+      http_count,
+      https_count,
+      no_match,
+      rx_0_count,
+      tx_0_count,
+      rx_0_size,
+      tx_0_size,
+      rx_0_drop,
+      rx_0_error,
+      tx_0_error,
+      rx_0_mbuf,
+      rx_1_count,
+      tx_1_count,
+      rx_1_size,
+      tx_1_size,
+      rx_1_drop,
+      rx_1_error,
+      tx_1_error,
+      rx_1_mbuf,
+      time,
+      throughput,
+    });
+  } catch (error) {
+    throw new Error("Error creating npb_packet");
+  }
 }
-
 
 async function getNpbPacketById(npbId) {
   try {
     const npbPackets = await NpbPacket.findAll({
       where: {
-        npb_id: npbId
-      }
+        npb_id: npbId,
+      },
     });
     return npbPackets;
   } catch (error) {
-    throw new Error('Error finding npb_packet by npb ID');
+    throw new Error("Error finding npb_packet by npb ID");
   }
 }
 
+// Updated service function to handle pagination
+async function getNpbPacketByIdWithPagination(npbId, page, pageSize) {
+  try {
+    const offset = (page - 1) * pageSize; // Calculate offset based on page number and pageSize
+    const npbPackets = await NpbPacket.findAll({
+      where: {
+        npb_id: npbId,
+      },
+      offset, // Apply offset
+      limit: pageSize, // Apply limit
+    });
+    return npbPackets;
+  } catch (error) {
+    throw new Error("Error finding npb_packet by npb ID");
+  }
+}
 
-async function createConfig(Id, txRingSize, numMbufs, mbufCacheSize, burstSize, maxTcpPayloadLen, statFile, statFileExt, timerPeriodStats, timerPeriodSend, maxPacketLen, rxRingSize) {
+async function createConfig(
+  Id,
+  backend_ip,
+  txRingSize,
+  numMbufs,
+  mbufCacheSize,
+  burstSize,
+  maxTcpPayloadLen,
+  statFile,
+  statFileExt,
+  timerPeriodStats,
+  timerPeriodSend,
+  maxPacketLen,
+  rxRingSize
+) {
   try {
     const config = await Config.create({
       Id,
+      backend_ip,
       txRingSize,
       numMbufs,
       mbufCacheSize,
@@ -105,11 +138,11 @@ async function createConfig(Id, txRingSize, numMbufs, mbufCacheSize, burstSize, 
       timerPeriodStats,
       timerPeriodSend,
       maxPacketLen,
-      rxRingSize
+      rxRingSize,
     });
     return config;
   } catch (error) {
-    throw new Error('Error creating config');
+    throw new Error("Error creating config");
   }
 }
 
@@ -117,12 +150,12 @@ async function getConfigById(Id) {
   try {
     const config = await Config.findOne({
       where: {
-        Id
-      }
+        Id,
+      },
     });
     return config;
   } catch (error) {
-    throw new Error('Error finding config by ID');
+    throw new Error("Error finding config by ID");
   }
 }
 
@@ -195,7 +228,6 @@ async function updateNpbStatus(npbId, status) {
   }
 }
 
-
 module.exports = {
   getAllModifiedNpbs,
   getNpbById,
@@ -204,6 +236,7 @@ module.exports = {
   getNpbByLocation,
   createNpbPacket,
   getNpbPacketById,
+  getNpbPacketByIdWithPagination,
   createConfig,
   getConfigById,
   createHeartbeat,

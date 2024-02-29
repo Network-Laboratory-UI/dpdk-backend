@@ -15,6 +15,10 @@ router.post("/location", npbController.getNpbByLocation);
 // Route to create an NpbPacket
 router.post("/npb-packet", npbController.createNpbPacket);
 router.get('/npb-packet/:id', npbController.getNpbPacketByNpbId);
+router.get(
+  "/npb-packet-page/:id",
+  npbController.getNpbPacketByNpbIdWithPagination
+);
 
 // Route for creating config
 router.post("/config", npbController.createConfig);

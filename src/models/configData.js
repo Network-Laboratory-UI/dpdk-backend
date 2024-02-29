@@ -44,6 +44,10 @@ const ConfigData = db.define("config_data", {
       key: 'id'
     },
   },
+  backend_ip: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   statFile: {
     type: DataTypes.STRING,
     allowNull: false,

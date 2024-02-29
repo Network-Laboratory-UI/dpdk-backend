@@ -7,7 +7,8 @@ const sequelize = new Sequelize({
     username: "postgres",
     password: "postgres", // Set to null or an empty string if no password
     database: "test",
-    timezone: "+07:00"
+    timezone: "+07:00",
+    logging: false,
 });
 
 module.exports = sequelize;

@@ -7,6 +7,7 @@ const cors = require("cors");
 const npbController = require("./controllers/npbController");
 const psContoller = require("./controllers/psController");
 const cron = require("node-cron");
+const producer = require("./config/kafkaConfig");
 
 const app = express();
 
@@ -31,6 +32,10 @@ db.authenticate()
     console.error("Unable to connect to the database:", err);
   });
 
+async function disconnect(){
+  await producer.disconnect();
+}
+
 // Use the npb routes with /npb prefix
 app.use("/npb", npbRoutes); // Updated route usage with /npb prefix
 app.use("/ps", psRoutes);
@@ -45,6 +50,5 @@ cron.schedule("*/15 * * * * *", async () => {
     console.error("Error in cron job:", error);
   }
 });
-
 
 module.exports = app;

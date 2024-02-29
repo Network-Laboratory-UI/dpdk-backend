@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 const npbService = require("../services/npbServices");
 const npbUtils = require("../utils/npbUtils");
 
@@ -16,7 +16,7 @@ async function createNpb(req, res) {
   try {
     const { name, location } = req.body;
 
-    if (!name || !location ) {
+    if (!name || !location) {
       return res.status(400).json({ error: "Name, location are required" });
     }
 
@@ -157,39 +157,112 @@ async function createNpbPacket(req, res) {
   }
 }
 
-
-
 async function getNpbPacketByNpbId(req, res) {
   const npbId = req.params.id;
 
   // Check if npbId is null or undefined
   if (!npbId) {
-    return res.status(400).json({ error: 'Npb ID is required.' });
+    return res.status(400).json({ error: "Npb ID is required." });
   }
 
   try {
     const npbPackets = await npbService.getNpbPacketById(npbId);
 
     if (npbPackets.length === 0) {
-      return res.json({ message: `No Npb Packets found for Npb with id ${npbId}` });
+      return res.json({
+        message: `No Npb Packets found for Npb with id ${npbId}`,
+      });
     }
 
     res.json(npbPackets);
   } catch (error) {
-    console.error('Error getting npb_packet:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error getting npb_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+// Updated controller function to handle pagination with parameters in the request body
+async function getNpbPacketByNpbIdWithPagination(req, res) {
+  const npbId = req.params.id;
+  const page = parseInt(req.query.page);
+  const pageSize = parseInt(req.query.pageSize);
+
+  // Check if npbId is null or undefined
+  if (!npbId) {
+    return res.status(400).json({ error: "Npb ID is required." });
+  }
+
+  try {
+    const npbPackets = await npbService.getNpbPacketByIdWithPagination(
+      npbId,
+      page,
+      pageSize
+    ); // Pass pagination parameters to service
+
+    if (npbPackets.length === 0) {
+      return res.json({
+        message: `No Npb Packets found for Npb with id ${npbId}`,
+      });
+    }
+
+    res.json(npbPackets);
+  } catch (error) {
+    console.error("Error getting npb_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
 async function createConfig(req, res) {
   try {
-    const { Id, txRingSize, numMbufs, mbufCacheSize, burstSize, maxTcpPayloadLen, statFile, statFileExt, timerPeriodStats, timerPeriodSend, maxPacketLen, rxRingSize } = req.body;
+    const {
+      Id,
+      backend_ip,
+      txRingSize,
+      numMbufs,
+      mbufCacheSize,
+      burstSize,
+      maxTcpPayloadLen,
+      statFile,
+      statFileExt,
+      timerPeriodStats,
+      timerPeriodSend,
+      maxPacketLen,
+      rxRingSize,
+    } = req.body;
 
-    if (!Id || !txRingSize || !numMbufs || !mbufCacheSize || !burstSize || !maxTcpPayloadLen || !statFile || !statFileExt || !timerPeriodStats || !timerPeriodSend || !maxPacketLen || !rxRingSize) {
+    if (
+      !Id ||
+      !backend_ip ||
+      !txRingSize ||
+      !numMbufs ||
+      !mbufCacheSize ||
+      !burstSize ||
+      !maxTcpPayloadLen ||
+      !statFile ||
+      !statFileExt ||
+      !timerPeriodStats ||
+      !timerPeriodSend ||
+      !maxPacketLen ||
+      !rxRingSize
+    ) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const configData = await npbService.createConfig(Id, txRingSize, numMbufs, mbufCacheSize, burstSize, maxTcpPayloadLen, statFile, statFileExt, timerPeriodStats, timerPeriodSend, maxPacketLen, rxRingSize);
+    const configData = await npbService.createConfig(
+      Id,
+      backend_ip,
+      txRingSize,
+      numMbufs,
+      mbufCacheSize,
+      burstSize,
+      maxTcpPayloadLen,
+      statFile,
+      statFileExt,
+      timerPeriodStats,
+      timerPeriodSend,
+      maxPacketLen,
+      rxRingSize
+    );
     res.json(configData);
   } catch (error) {
     console.error("Error creating config data:", error);
@@ -204,7 +277,9 @@ async function getConfigById(req, res) {
     const configData = await npbService.getConfigById(Id);
 
     if (!configData) {
-      return res.status(404).json({ error: `Config Data with id ${Id} not found` });
+      return res
+        .status(404)
+        .json({ error: `Config Data with id ${Id} not found` });
     }
 
     res.json(configData);
@@ -241,26 +316,20 @@ async function createNpbHeartbeat(req, res) {
       }
 
       // Create a new heartbeat record
-      const newHeartbeat = await npbService.createHeartbeat(
-        npb_id,
-        time
-      );
+      const newHeartbeat = await npbService.createHeartbeat(npb_id, time);
       results.push(newHeartbeat);
     }
 
     // Send success response with created heartbeat records
-    res
-      .status(201)
-      .json({
-        message: "Heartbeats created successfully",
-        heartbeats: results,
-      });
+    res.status(201).json({
+      message: "Heartbeats created successfully",
+      heartbeats: results,
+    });
   } catch (error) {
     console.error("Error creating Npb heartbeat:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
-
 
 async function getNpbHeartbeatByNpbId(req, res) {
   const npbId = req.params.id;
@@ -330,6 +399,7 @@ module.exports = {
   getNpbByLocation,
   createNpbPacket,
   getNpbPacketByNpbId,
+  getNpbPacketByNpbIdWithPagination,
   createConfig,
   getConfigById,
   createNpbHeartbeat,

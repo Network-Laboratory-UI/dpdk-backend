@@ -16,6 +16,10 @@ const PsBlockedList = db.define("ps_blocked_list", {
       key: 'id'
     },
   },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   domain: {
     type: DataTypes.STRING,
     allowNull: false
@@ -26,6 +30,7 @@ const PsBlockedList = db.define("ps_blocked_list", {
   },
   hit_count: {
     type: DataTypes.INTEGER,
+    defaultValue: 0,
     allowNull: false
   },
 }, { 
