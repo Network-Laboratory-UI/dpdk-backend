@@ -1,11 +1,11 @@
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 const npbService = require("../services/npbServices");
 const npbUtils = require("../utils/npbUtils");
 
 async function getAllNpbs(req, res) {
   try {
     const npbs = await npbService.getAllModifiedNpbs();
-    res.json(npbs);
+    res.json(npbs.sort((a, b) => a.id - b.id));
   } catch (error) {
     console.error("Error getting npbs:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -16,7 +16,7 @@ async function createNpb(req, res) {
   try {
     const { name, location } = req.body;
 
-    if (!name || !location ) {
+    if (!name || !location) {
       return res.status(400).json({ error: "Name, location are required" });
     }
 
@@ -79,7 +79,9 @@ async function createNpbPacket(req, res) {
 
     // Validate that packets is an array
     if (!Array.isArray(packets)) {
-      return res.status(400).json({ error: "Packets must be provided as an array" });
+      return res
+        .status(400)
+        .json({ error: "Packets must be provided as an array" });
     }
 
     // Create an array to store the results
@@ -90,66 +92,312 @@ async function createNpbPacket(req, res) {
         npb_id,
         http_count,
         https_count,
-        rx_count,
-        tx_count,
-        rx_size,
-        tx_size,
+        no_match,
+        rx_0_count,
+        tx_0_count,
+        rx_0_size,
+        tx_0_size,
+        rx_0_drop,
+        rx_0_error,
+        tx_0_error,
+        rx_0_mbuf,
+        rx_1_count,
+        tx_1_count,
+        rx_1_size,
+        tx_1_size,
+        rx_1_drop,
+        rx_1_error,
+        tx_1_error,
+        rx_1_mbuf,
         time,
-        throughput
+        throughput,
       } = packet;
-
-      // Convert the time to Indonesia Time
-      const timeInIndonesia = npbUtils.convertToIndonesiaTime(new Date(time));
 
       // Check if the npb with the provided npb_id exists
       const existingNpb = await npbService.getNpbById(npb_id);
       if (!existingNpb) {
-        return res.status(404).json({ error: `Npb with id ${npb_id} not found` });
+        return res
+          .status(404)
+          .json({ error: `Npb with id ${npb_id} not found` });
       }
 
       const npbPacket = await npbService.createNpbPacket({
         npb_id,
         http_count,
         https_count,
-        rx_count,
-        tx_count,
-        rx_size,
-        tx_size,
-        time: timeInIndonesia,
-        throughput
+        no_match,
+        rx_0_count,
+        tx_0_count,
+        rx_0_size,
+        tx_0_size,
+        rx_0_drop,
+        rx_0_error,
+        tx_0_error,
+        rx_0_mbuf,
+        rx_1_count,
+        tx_1_count,
+        rx_1_size,
+        tx_1_size,
+        rx_1_drop,
+        rx_1_error,
+        tx_1_error,
+        rx_1_mbuf,
+        time,
+        throughput,
       });
 
       results.push(npbPacket);
     }
 
-    //send success message
-    res.status(200).json({message: "Success"});
+    // Send success message
+    res.status(200).json({ message: "Success" });
   } catch (error) {
     console.error("Error creating NpbPackets:", error);
     res.status(500).json({ error: error.message });
   }
 }
 
-
 async function getNpbPacketByNpbId(req, res) {
   const npbId = req.params.id;
 
   // Check if npbId is null or undefined
   if (!npbId) {
-    return res.status(400).json({ error: 'Npb ID is required.' });
+    return res.status(400).json({ error: "Npb ID is required." });
   }
 
   try {
     const npbPackets = await npbService.getNpbPacketById(npbId);
 
     if (npbPackets.length === 0) {
-      return res.json({ message: `No Npb Packets found for Npb with id ${npbId}` });
+      return res.json({
+        message: `No Npb Packets found for Npb with id ${npbId}`,
+      });
     }
 
     res.json(npbPackets);
   } catch (error) {
-    console.error('Error getting npb_packet:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error getting npb_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+// Updated controller function to handle pagination with parameters in the request body
+async function getNpbPacketByNpbIdWithPagination(req, res) {
+  const npbId = req.params.id;
+  const page = parseInt(req.query.page);
+  const pageSize = parseInt(req.query.pageSize);
+
+  // Check if npbId is null or undefined
+  if (!npbId) {
+    return res.status(400).json({ error: "Npb ID is required." });
+  }
+
+  try {
+    const npbPackets = await npbService.getNpbPacketByIdWithPagination(
+      npbId,
+      page,
+      pageSize
+    ); // Pass pagination parameters to service
+
+    if (npbPackets.length === 0) {
+      return res.json({
+        message: `No Npb Packets found for Npb with id ${npbId}`,
+      });
+    }
+
+    res.json(npbPackets);
+  } catch (error) {
+    console.error("Error getting npb_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function createConfig(req, res) {
+  try {
+    const {
+      npbId,
+      psId,
+      backend_ip,
+      txRingSize,
+      numMbufs,
+      mbufCacheSize,
+      burstSize,
+      maxTcpPayloadLen,
+      statFile,
+      statFileExt,
+      timerPeriodStats,
+      timerPeriodSend,
+      maxPacketLen,
+      rxRingSize,
+    } = req.body;
+
+    if (
+      !npbId ||
+      !psId ||
+      !backend_ip ||
+      !txRingSize ||
+      !numMbufs ||
+      !mbufCacheSize ||
+      !burstSize ||
+      !maxTcpPayloadLen ||
+      !statFile ||
+      !statFileExt ||
+      !timerPeriodStats ||
+      !timerPeriodSend ||
+      !maxPacketLen ||
+      !rxRingSize
+    ) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const configData = await npbService.createConfig(
+      npbId,
+      psId,
+      backend_ip,
+      txRingSize,
+      numMbufs,
+      mbufCacheSize,
+      burstSize,
+      maxTcpPayloadLen,
+      statFile,
+      statFileExt,
+      timerPeriodStats,
+      timerPeriodSend,
+      maxPacketLen,
+      rxRingSize
+    );
+    res.json(configData);
+  } catch (error) {
+    console.error("Error creating config data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function getConfigById(req, res) {
+    const id = req.params.id; // Extract the ID from the route parameters
+
+    try {
+        // Check if ID is provided
+        if (!id) {
+            return res.status(400).json({ error: "ID must be provided" });
+        }
+
+        let configData = await npbService.getConfigById(id, "npb");
+
+        if (!configData) {
+            configData = await npbService.getConfigById(id, "ps");
+        }
+
+        if (!configData) {
+            return res.status(404).json({ error: `Config Data not found` });
+        }
+
+        res.json(configData);
+    } catch (error) {
+        console.error("Error getting Config Data:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
+
+async function createNpbHeartbeat(req, res) {
+  try {
+    const heartbeats = req.body;
+
+    // Validate that heartbeats is an array
+    if (!Array.isArray(heartbeats)) {
+      return res
+        .status(400)
+        .json({ error: "Heartbeats must be provided as an array" });
+    }
+
+    // Create an array to store the results
+    const results = [];
+
+    // Iterate over each heartbeat object in the array
+    for (const heartbeat of heartbeats) {
+      const { npb_id, time } = heartbeat;
+
+      // Check if the npb with the provided npb_id exists
+      const existingNpb = await npbService.getNpbById(npb_id);
+      if (!existingNpb) {
+        return res
+          .status(404)
+          .json({ error: `Npb with id ${npb_id} not found` });
+      }
+
+      // Create a new heartbeat record
+      const newHeartbeat = await npbService.createHeartbeat(npb_id, time);
+      results.push(newHeartbeat);
+    }
+
+    // Send success response with created heartbeat records
+    res.status(201).json({
+      message: "Heartbeats created successfully",
+      heartbeats: results,
+    });
+  } catch (error) {
+    console.error("Error creating Npb heartbeat:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function getNpbHeartbeatByNpbId(req, res) {
+  const npbId = req.params.id;
+
+  // Check if npbId is null or undefined
+  if (!npbId) {
+    return res.status(400).json({ error: "Npb ID is required." });
+  }
+
+  try {
+    const npbHeartbeat = await npbService.getAllHeartbeatbyNpbId(npbId);
+
+    if (npbHeartbeat.length === 0) {
+      return res.json({
+        message: `No Npb Heartbeat found for Npb with id ${npbId}`,
+      });
+    }
+
+    res.json(npbHeartbeat);
+  } catch (error) {
+    console.error("Error getting npb_heartbeat:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function performHeartbeatCheck() {
+  try {
+    console.log("Running heartbeat check...");
+    // Fetch all modified npb objects
+    let modifiedNpbs = await npbService.getAllModifiedNpbs();
+
+    // Sort modified npb objects by ID to ensure consistent processing order
+    modifiedNpbs.sort((a, b) => a.id - b.id);
+
+    // Create an array of promises for updating npb statuses
+    const updatePromises = modifiedNpbs.map(async (npb) => {
+      const npb_id = npb.id;
+      const isHeartbeatAlive = await npbService.getNpbHeartbeatByNpbId(npb_id);
+      console.log(`Heartbeat for npb_id ${npb_id} is alive:`, isHeartbeatAlive);
+
+      // Update npb status based on heartbeat check result
+      if (isHeartbeatAlive) {
+        // Heartbeat is alive, set status to Active
+        await npbService.updateNpbStatus(npb_id, "Active");
+        console.log(`Status updated for npb_id ${npb_id} to Active`);
+      } else {
+        // Heartbeat is not alive, set status to Inactive
+        await npbService.updateNpbStatus(npb_id, "Inactive");
+        console.log(`Status updated for npb_id ${npb_id} to Inactive`);
+      }
+    });
+
+    // Wait for all update promises to complete
+    await Promise.all(updatePromises);
+
+    console.log("All npb statuses updated successfully.");
+  } catch (error) {
+    console.error("Error in heartbeat check:", error);
   }
 }
 
@@ -161,4 +409,10 @@ module.exports = {
   getNpbByLocation,
   createNpbPacket,
   getNpbPacketByNpbId,
+  getNpbPacketByNpbIdWithPagination,
+  createConfig,
+  getConfigById,
+  createNpbHeartbeat,
+  getNpbHeartbeatByNpbId,
+  performHeartbeatCheck,
 };

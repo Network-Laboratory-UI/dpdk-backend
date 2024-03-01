@@ -1,17 +1,54 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const db = require("../config/dpdkDatabase");
+const Npb = require("./npb"); // Import Npb model
 const Ps = require("./ps"); // Import Ps model
 
-const PsPacket = db.define(
-  "ps_packet",
+const ConfigData = db.define(
+  "config_data",
   {
-    packet_id: {
+    configId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
       // autoIncrement: true,
     },
-    ps_id: {
+    maxPacketLen: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rxRingSize: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    txRingSize: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    numMbufs: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    mbufCacheSize: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    burstSize: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    maxTcpPayloadLen: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    npbId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: Npb,
+        key: "id",
+      },
+    },
+    psId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
@@ -19,89 +56,29 @@ const PsPacket = db.define(
         key: "id",
       },
     },
-    rstClient: {
+    backend_ip: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    statFile: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    statFileExt: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    timerPeriodStats: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rstServer: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_0_count: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    tx_0_count: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_0_size: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    tx_0_size: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_0_drop: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_0_error: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    tx_0_error: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_0_mbuf: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_1_count: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    tx_1_count: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_1_size: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    tx_1_size: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_1_drop: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_1_error: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    tx_1_error: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    rx_1_mbuf: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    time: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    throughput: {
+    timerPeriodSend: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
   },
   {
-    tableName: "ps_packet",
+    tableName: "config_data",
     timestamps: false,
   }
 );
@@ -109,10 +86,10 @@ const PsPacket = db.define(
 (async () => {
   try {
     await db.sync();
-    console.log("Database synchronized.");
+
   } catch (error) {
     console.error("Error synchronizing database:", error);
   }
 })();
 
-module.exports = PsPacket;
+module.exports = ConfigData;
