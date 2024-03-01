@@ -215,7 +215,8 @@ async function getNpbPacketByNpbIdWithPagination(req, res) {
 async function createConfig(req, res) {
   try {
     const {
-      Id,
+      npbId,
+      psId,
       backend_ip,
       txRingSize,
       numMbufs,
@@ -231,7 +232,8 @@ async function createConfig(req, res) {
     } = req.body;
 
     if (
-      !Id ||
+      !npbId ||
+      !psId ||
       !backend_ip ||
       !txRingSize ||
       !numMbufs ||
@@ -249,7 +251,8 @@ async function createConfig(req, res) {
     }
 
     const configData = await npbService.createConfig(
-      Id,
+      npbId,
+      psId,
       backend_ip,
       txRingSize,
       numMbufs,
@@ -271,22 +274,29 @@ async function createConfig(req, res) {
 }
 
 async function getConfigById(req, res) {
-  const Id = req.params.id;
+    const id = req.params.id; // Extract the ID from the route parameters
 
-  try {
-    const configData = await npbService.getConfigById(Id);
+    try {
+        // Check if ID is provided
+        if (!id) {
+            return res.status(400).json({ error: "ID must be provided" });
+        }
 
-    if (!configData) {
-      return res
-        .status(404)
-        .json({ error: `Config Data with id ${Id} not found` });
+        let configData = await npbService.getConfigById(id, "npb");
+
+        if (!configData) {
+            configData = await npbService.getConfigById(id, "ps");
+        }
+
+        if (!configData) {
+            return res.status(404).json({ error: `Config Data not found` });
+        }
+
+        res.json(configData);
+    } catch (error) {
+        console.error("Error getting Config Data:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
-
-    res.json(configData);
-  } catch (error) {
-    console.error("Error getting Config Data by ID:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
 }
 
 async function createNpbHeartbeat(req, res) {

@@ -20,9 +20,6 @@ router.get(
   npbController.getNpbPacketByNpbIdWithPagination
 );
 
-// Route for creating config
-router.post("/config", npbController.createConfig);
-router.get('/config/:id', npbController.getConfigById);
 
 // Route for Hearbeat
 router.post("/heartbeat", npbController.createNpbHeartbeat);

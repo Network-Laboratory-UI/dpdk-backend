@@ -6,12 +6,13 @@ const PsPacket = db.define(
   "ps_packet",
   {
     packet_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      autoIncrement: true,
+      // autoIncrement: true,
     },
     ps_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: Ps,

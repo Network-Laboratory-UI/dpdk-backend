@@ -185,11 +185,10 @@ async function updatePsStatus(psId, status) {
 }
 
 // Service function to create a PS blocked list
-async function createPsBlockedList(ps_id, name, domain, ip_add) {
+async function createPsBlockedList(name, domain, ip_add) {
   try {
     // Create the PS blocked list record
     const createdBlockedList = await PsBlockedList.create({
-      ps_id,
       name,
       domain,
       ip_add,

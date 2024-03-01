@@ -6,12 +6,13 @@ const NpbHeartbeat = db.define(
   "heartbeat",
   {
     heartbeat_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      autoIncrement: true,
+      // autoIncrement: true,
     },
     npb_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: Npb,

@@ -317,16 +317,11 @@ async function performHeartbeatCheck() {
 // Controller function to create a PS blocked list
 async function createPsBlockedList(req, res) {
   try {
-    const { ps_id, name, domain, ip_add } = req.body;
+    const { name, domain, ip_add } = req.body;
     // Check if the Ps with the provided Ps_id exists
-    const existingPs = await psService.getPSById(ps_id);
-    if (!existingPs) {
-      return res.status(404).json({ error: `Ps with id ${ps_id} not found` });
-    }
 
     // Call the service function to create the PS blocked list
     const createdBlockedList = await psService.createPsBlockedList(
-      ps_id,
       name,
       domain,
       ip_add

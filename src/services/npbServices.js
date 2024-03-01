@@ -110,7 +110,8 @@ async function getNpbPacketByIdWithPagination(npbId, page, pageSize) {
 }
 
 async function createConfig(
-  Id,
+  npbId,
+  psId,
   backend_ip,
   txRingSize,
   numMbufs,
@@ -126,7 +127,8 @@ async function createConfig(
 ) {
   try {
     const config = await Config.create({
-      Id,
+      npbId,
+      psId,
       backend_ip,
       txRingSize,
       numMbufs,
@@ -146,18 +148,33 @@ async function createConfig(
   }
 }
 
-async function getConfigById(Id) {
+async function getConfigById(id, type) {
   try {
-    const config = await Config.findOne({
-      where: {
-        Id,
-      },
-    });
+    let config;
+    if (type === "npb") {
+      // Retrieve NPB configuration based on the provided ID
+      config = await Config.findOne({
+        where: {
+          npbId: id,
+        },
+      });
+    } else if (type === "ps") {
+      // Retrieve PS configuration based on the provided ID
+      config = await Config.findOne({
+        where: {
+          psId: id,
+        },
+      });
+    } else {
+      throw new Error("Invalid type parameter");
+    }
+
     return config;
   } catch (error) {
     throw new Error("Error finding config by ID");
   }
 }
+
 
 async function createHeartbeat(npb_id, time) {
   try {
