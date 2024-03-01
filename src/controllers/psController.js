@@ -327,15 +327,19 @@ async function createPsBlockedList(req, res) {
       ip_add
     );
 
-    producer.send({
-      topic: "dpdk-blocked-list",
-      messages: [
-        {
-          key: "List",
-          value: JSON.stringify({createdBlockedList, type: "create"})
-        },
-      ],
-    });
+    // Check if the blocked list was successfully created
+    if (createdBlockedList) {
+      // Send message only if the blocked list was created successfully
+      producer.send({
+        topic: "dpdk-blocked-list",
+        messages: [
+          {
+            key: "List",
+            value: JSON.stringify({ createdBlockedList, type: "create" }),
+          },
+        ],
+      });
+    }
 
     res.status(200).json({ message: "Success", createdBlockedList });
   } catch (error) {
@@ -344,6 +348,7 @@ async function createPsBlockedList(req, res) {
     throw new Error("Failed to create PS blocked list");
   }
 }
+
 
 async function getPsBlockedList(req, res) {
   try {
@@ -365,12 +370,14 @@ async function deletePsBlockedList(req, res) {
   try {
     const id = req.params.id;
     const deletedBlockedList = await psService.deletePsBlockedList(id);
+
     if (!deletedBlockedList) {
       return res
         .status(404)
         .json({ error: `Blocked list with id ${id} not found` });
     }
 
+    // Send message only if the blocked list was deleted successfully
     producer.send({
       topic: "dpdk-blocked-list",
       messages: [
@@ -380,6 +387,7 @@ async function deletePsBlockedList(req, res) {
         },
       ],
     });
+
     res.status(200).json({
       message: "Blocked list successfully deleted",
       deletedBlockedList,

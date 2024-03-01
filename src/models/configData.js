@@ -83,13 +83,6 @@ const ConfigData = db.define(
   }
 );
 
-(async () => {
-  try {
-    await db.sync();
-
-  } catch (error) {
-    console.error("Error synchronizing database:", error);
-  }
-})();
+db.sync();
 
 module.exports = ConfigData;

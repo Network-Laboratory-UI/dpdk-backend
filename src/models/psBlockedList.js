@@ -35,13 +35,6 @@ const PsBlockedList = db.define(
   }
 );
 
-(async () => {
-  try {
-    await db.sync();
-    console.log("Database synchronized.");
-  } catch (error) {
-    console.error("Error synchronizing database:", error);
-  }
-})();
+db.sync();
 
 module.exports = PsBlockedList;
