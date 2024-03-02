@@ -202,7 +202,13 @@ async function createPsBlockedList(name, domain, ip_add) {
 async function getAllPsBlockedList() {
   try {
     // Retrieve all blocked list records
-    const blockedList = await PsBlockedList.findAll();
+    const blockedList = await PsBlockedList.findAll(
+      {
+        order: [
+          ["id", "ASC"],
+        ],
+      }
+    );
 
     // Check if any blocked list records exist
     if (blockedList.length === 0) {
