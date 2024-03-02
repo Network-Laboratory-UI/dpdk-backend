@@ -79,6 +79,43 @@ async function createNpbPacket({
   }
 }
 
+async function getTotalNpbPacketById(npbId) {
+  try {
+    const npbPackets = await NpbPacket.findAll({
+      attributes: ["http_count", "https_count", "tx_0_count", "rx_1_count"], // Select only the required columns
+      where: {
+        npb_id: npbId,
+      },
+    });
+
+    // Initialize counts
+    let totalHttpCount = 0;
+    let totalHttpsCount = 0;
+    let totalTxCount = 0;
+    let totalRxCount = 0;
+
+    // Iterate over npbPackets and sum up counts
+    npbPackets.forEach((packet) => {
+      totalHttpCount += packet.http_count;
+      totalHttpsCount += packet.https_count;
+      totalTxCount += packet.tx_0_count;
+      totalRxCount += packet.rx_1_count;
+    });
+
+    // Return the totals
+    return { 
+      npbPackets:{
+        http_count: totalHttpCount,
+        https_count: totalHttpsCount,
+        tx_0_count: totalTxCount,
+        rx_1_count: totalRxCount,
+      }
+    };
+  } catch (error) {
+    throw new Error("Error finding npb_packet by npb ID");
+  }
+}
+
 async function getNpbPacketById(npbId) {
   try {
     const npbPackets = await NpbPacket.findAll({
@@ -186,6 +223,7 @@ module.exports = {
   getNpbByStatus,
   getNpbByLocation,
   createNpbPacket,
+  getTotalNpbPacketById,
   getNpbPacketById,
   getNpbPacketByIdWithPagination,
   createHeartbeat,

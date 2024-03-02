@@ -56,7 +56,7 @@ const ConfigData = db.define(
         key: "id",
       },
     },
-    backend_ip: {
+    hostname: {
       type: DataTypes.STRING,
       allowNull: false,
     },

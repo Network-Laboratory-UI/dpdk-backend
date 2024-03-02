@@ -6,10 +6,9 @@ const PsHeartbeat = db.define(
   "psheartbeat",
   {
     heartbeat_id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      // autoIncrement: true,
+      autoIncrement: true,
     },
     ps_id: {
       type: DataTypes.UUID,

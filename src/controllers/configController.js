@@ -5,7 +5,7 @@ async function createConfig(req, res) {
     const {
       npbId,
       psId,
-      backend_ip,
+      hostname,
       txRingSize,
       numMbufs,
       mbufCacheSize,
@@ -22,7 +22,7 @@ async function createConfig(req, res) {
     if (
       !npbId ||
       !psId ||
-      !backend_ip ||
+      !hostname ||
       !txRingSize ||
       !numMbufs ||
       !mbufCacheSize ||
@@ -41,7 +41,7 @@ async function createConfig(req, res) {
     const configData = await configService.createConfig(
       npbId,
       psId,
-      backend_ip,
+      hostname,
       txRingSize,
       numMbufs,
       mbufCacheSize,

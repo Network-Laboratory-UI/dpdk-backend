@@ -159,6 +159,30 @@ async function createPsPacket(req, res) {
   }
 }
 
+async function getTotalPsPacketByPsId(req, res) {
+  const psId = req.params.id;
+
+  // Check if psId is null or undefined
+  if (!psId) {
+    return res.status(400).json({ error: "Ps ID is required." });
+  }
+
+  try {
+    const psPackets = await psService.getTotalPsPacketById(psId);
+
+    if (psPackets.length === 0) {
+      return res.json({
+        message: `No Ps Packets found for Ps with id ${psId}`,
+      });
+    }
+
+    res.json(psPackets);
+  } catch (error) {
+    console.error("Error getting ps_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function getPsPacketByPsId(req, res) {
   const psId = req.params.id;
 
@@ -440,6 +464,7 @@ module.exports = {
   getPSByStatus,
   getPSByLocation,
   createPsPacket,
+  getTotalPsPacketByPsId,
   getPsPacketByPsId,
   getPsPacketByPsIdWithPagination,
   createPsHeartbeat,

@@ -6,10 +6,9 @@ const NpbPacket = db.define(
   "npb_packet",
   {
     packet_id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      // autoIncrement: true,
+      autoIncrement: true,
     },
     npb_id: {
       type: DataTypes.UUID,

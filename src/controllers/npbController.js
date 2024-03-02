@@ -157,6 +157,30 @@ async function createNpbPacket(req, res) {
   }
 }
 
+async function geTotalNpbPacketByNpbId(req, res) {
+  const npbId = req.params.id;
+
+  // Check if npbId is null or undefined
+  if (!npbId) {
+    return res.status(400).json({ error: "Npb ID is required." });
+  }
+
+  try {
+    const npbPackets = await npbService.getTotalNpbPacketById(npbId);
+
+    if (npbPackets.length === 0) {
+      return res.json({
+        message: `No Npb Packets found for Npb with id ${npbId}`,
+      });
+    }
+
+    res.json(npbPackets);
+  } catch (error) {
+    console.error("Error getting npb_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function getNpbPacketByNpbId(req, res) {
   const npbId = req.params.id;
 
@@ -321,6 +345,7 @@ module.exports = {
   getNpbByStatus,
   getNpbByLocation,
   createNpbPacket,
+  geTotalNpbPacketByNpbId,
   getNpbPacketByNpbId,
   getNpbPacketByNpbIdWithPagination,
   createNpbHeartbeat,

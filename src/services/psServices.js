@@ -85,6 +85,43 @@ async function createPsPacket({
   }
 }
 
+async function getTotalPsPacketById(psId) {
+  try {
+    const psPackets = await PsPacket.findAll({
+      attributes: ["rstClient", "rstServer", "tx_1_count", "rx_0_count"], // Select only the required columns
+      where: {
+        ps_id: psId,
+      },
+    });
+
+    // Initialize counts
+    let totalRstClient = 0;
+    let totalRstServer = 0;
+    let totalTxCount = 0;
+    let totalRxCount = 0;
+
+    // Iterate over psPackets and sum up counts
+    psPackets.forEach((packet) => {
+      totalRstClient += packet.rstClient;
+      totalRstServer += packet.rstServer;
+      totalTxCount += packet.tx_1_count;
+      totalRxCount += packet.rx_0_count;
+    });
+
+    // Return the totals
+    return {
+        psPacket: {
+        rstClient: totalRstClient,
+        rstServer: totalRstServer,
+        tx_1_count: totalTxCount,
+        rx_0_count: totalRxCount,
+      }
+    };
+  } catch (error) {
+    throw new Error("Error finding ps_packet by ps ID");
+  }
+}
+
 async function getPsPacketById(psId) {
   try {
     const psPackets = await PsPacket.findAll({
@@ -266,6 +303,7 @@ module.exports = {
   getPSByStatus,
   getPSByLocation,
   createPsPacket,
+  getTotalPsPacketById,
   getPsPacketById,
   getPsPacketByIdWithPagination,
   createHeartbeat,

@@ -14,11 +14,12 @@ router.post("/status", psController.getPSByStatus);
 router.post("/location", psController.getPSByLocation);
 
 router.post("/ps-packet", psController.createPsPacket);
-router.get('/ps-packet/:id', psController.getPsPacketByPsId);
+router.get('/ps-packet-total/:id', psController.getTotalPsPacketByPsId);
 router.get(
   "/ps-packet-page/:id",
   psController.getPsPacketByPsIdWithPagination
 );
+router.get("/ps-packet/:id", psController.getPsPacketByPsId);
 
 // Route for Hearbeat
 router.post("/heartbeat", psController.createPsHeartbeat);
