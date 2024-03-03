@@ -4,6 +4,7 @@ const db = require("./config/dpdkDatabase");
 const npbRoutes = require("./routes/npbRoutes"); // Updated route import
 const psRoutes = require("./routes/psRoutes");
 const configRoutes = require("./routes/configRoutes");
+const userRoutes = require("./routes/userRoutes");
 const cors = require("cors");
 const npbController = require("./controllers/npbController");
 const psContoller = require("./controllers/psController");
@@ -41,6 +42,7 @@ async function disconnect(){
 app.use("/npb", npbRoutes); // Updated route usage with /npb prefix
 app.use("/ps", psRoutes);
 app.use("/config", configRoutes);
+app.use("/user", userRoutes);
 
 // Cron job to run every 15 seconds
 cron.schedule("*/15 * * * * *", async () => {
