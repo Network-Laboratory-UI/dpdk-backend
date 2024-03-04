@@ -28,10 +28,19 @@ const PsBlockedList = db.define(
       defaultValue: 0,
       allowNull: false,
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+    },
   },
   {
     tableName: "ps_blocked_list",
-    timestamps: false,
   }
 );
 

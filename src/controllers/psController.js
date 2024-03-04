@@ -373,7 +373,6 @@ async function createPsBlockedList(req, res) {
   }
 }
 
-
 async function getPsBlockedList(req, res) {
   try {
     const psBlockedList = await psService.getAllPsBlockedList();
@@ -384,7 +383,7 @@ async function getPsBlockedList(req, res) {
       });
     }
 
-    res.json(psBlockedList.sort((a, b) => a.id - b.id));
+    res.json(psBlockedList.sort((a, b) => b.createdAt - a.createdAt));
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -496,7 +495,6 @@ async function updateBlockedListHitCount(req, res) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
-
 
 module.exports = {
   getAllPSs,
