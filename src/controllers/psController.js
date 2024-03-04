@@ -460,6 +460,9 @@ async function updateBlockedListHitCount(req, res) {
     const blockedLists = req.body;
     const updatedBlockedListResults = [];
 
+    // Fetch all blocked lists from the service
+    const allBlockedLists = await psService.getAllPsBlockedList();
+
     for (let blockedList of blockedLists) {
       const { id, hit_count } = blockedList;
 
@@ -472,21 +475,26 @@ async function updateBlockedListHitCount(req, res) {
         continue;
       }
 
-      const updatedBlockedList = await psService.updateBlockedListHitCount(
-        id,
-        hit_count
-      );
-      if (!updatedBlockedList) {
+      // Check if the id exists in the list of all blocked lists
+      const idExists = allBlockedLists.some((list) => list.id === id);
+
+      if (!idExists) {
         updatedBlockedListResults.push({
           id,
           error: `Blocked list with id ${id} not found`,
         });
-      } else {
-        updatedBlockedListResults.push({
-          id,
-          message: "Blocked list hit count successfully updated",
-        });
+        continue;
       }
+
+      const updatedBlockedList = await psService.updateBlockedListHitCount(
+        id,
+        hit_count
+      );
+
+      updatedBlockedListResults.push({
+        id,
+        message: "Blocked list hit count successfully updated",
+      });
     }
 
     res.status(200).json(updatedBlockedListResults);

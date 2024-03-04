@@ -300,13 +300,16 @@ async function updateBlockedListHitCount(id, newHitCount) {
   // Fetch all blocked lists from the database
   const blockedLists = await getAllPsBlockedList();
 
-  // Find the specific blocked list using the provided id
-  const blockedList = blockedLists.find((list) => list.id === id);
+  // Check if the provided id exists in the blocked lists
+  const idExists = blockedLists.some((list) => list.id === id);
 
-  // If the blocked list is not found, throw an error
-  if (!blockedList) {
+  // If the id does not exist, throw an error
+  if (!idExists) {
     throw new Error(`Blocked list with id ${id} not found`);
   }
+
+  // Find the specific blocked list using the provided id
+  const blockedList = blockedLists.find((list) => list.id === id);
 
   // Get the current hit count
   const currentHitCount = blockedList.hit_count;
