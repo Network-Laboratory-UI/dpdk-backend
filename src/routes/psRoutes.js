@@ -30,5 +30,6 @@ router.post("/blocked-list", psController.createPsBlockedList);
 router.get('/blocked-list', psController.getPsBlockedList);
 router.put('/blocked-list/:id', psController.updatePsBlockedList);
 router.delete('/blocked-list/:id', psController.deletePsBlockedList);
+router.put('/blocked-list-count', psController.updateBlockedListHitCount);
 
 module.exports = router;

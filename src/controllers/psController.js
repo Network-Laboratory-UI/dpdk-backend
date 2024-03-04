@@ -456,6 +456,28 @@ async function updatePsBlockedList(req, res) {
   }
 }
 
+async function updateBlockedListHitCount(req, res) {
+  try {
+    const { id, hit_count } = req.body;
+    const updatedBlockedList = await psService.updateBlockedListHitCount(
+      id,
+      hit_count
+    );
+    if (!updatedBlockedList) {
+      return res
+        .status(404)
+        .json({ error: `Blocked list with id ${id} not found` });
+    }
+    res.status(200).json({
+      message: "Blocked list hit count successfully updated",
+      updatedBlockedList,
+    });
+  } catch (error) {
+    console.error("Error updating blocked list hit count:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 
 module.exports = {
   getAllPSs,
@@ -473,5 +495,6 @@ module.exports = {
   createPsBlockedList,
   getPsBlockedList,
   updatePsBlockedList,
+  updateBlockedListHitCount,
   deletePsBlockedList,
 };
