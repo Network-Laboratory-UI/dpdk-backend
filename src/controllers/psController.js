@@ -5,7 +5,7 @@ const producer = require("../config/kafkaConfig");
 async function getAllPSs(req, res) {
   try {
     const psInstances = await psService.getAllModifiedPSs();
-    res.json(psInstances.sort((a, b) => a.id - b.id));
+    res.json(psInstances.sort((a, b) => a.name.localeCompare(b.name)));
   } catch (error) {
     console.error("Error getting PS instances:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -458,22 +458,41 @@ async function updatePsBlockedList(req, res) {
 
 async function updateBlockedListHitCount(req, res) {
   try {
-    const { id, hit_count } = req.body;
-    const updatedBlockedList = await psService.updateBlockedListHitCount(
-      id,
-      hit_count
-    );
-    if (!updatedBlockedList) {
-      return res
-        .status(404)
-        .json({ error: `Blocked list with id ${id} not found` });
+    const blockedLists = req.body;
+    const updatedBlockedListResults = [];
+
+    for (let blockedList of blockedLists) {
+      const { id, hit_count } = blockedList;
+
+      // Skip if id is empty
+      if (!id) {
+        updatedBlockedListResults.push({
+          id,
+          error: "id is empty",
+        });
+        continue;
+      }
+
+      const updatedBlockedList = await psService.updateBlockedListHitCount(
+        id,
+        hit_count
+      );
+      if (!updatedBlockedList) {
+        updatedBlockedListResults.push({
+          id,
+          error: `Blocked list with id ${id} not found`,
+        });
+      } else {
+        updatedBlockedListResults.push({
+          id,
+          message: "Blocked list hit count successfully updated",
+        });
+      }
     }
-    res.status(200).json({
-      message: "Blocked list hit count successfully updated",
-      updatedBlockedList,
-    });
+
+    res.status(200).json(updatedBlockedListResults);
   } catch (error) {
-    console.error("Error updating blocked list hit count:", error);
+    console.error("Error updating blocked list hit counts:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }

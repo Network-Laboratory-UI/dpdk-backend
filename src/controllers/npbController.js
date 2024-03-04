@@ -5,7 +5,7 @@ const npbUtils = require("../utils/npbUtils");
 async function getAllNpbs(req, res) {
   try {
     const npbs = await npbService.getAllModifiedNpbs();
-    res.json(npbs.sort((a, b) => a.id - b.id));
+    res.json(npbs.sort((a, b) => a.name.localeCompare(b.name)));
   } catch (error) {
     console.error("Error getting npbs:", error);
     res.status(500).json({ error: "Internal Server Error" });
