@@ -107,6 +107,7 @@ async function getTotalPsPacketById(psId) {
     throw new Error("Error finding ps_packet by ps ID");
   }
 }
+
 async function getPsPacketById(psId) {
   try {
     const psPackets = await PsPacket.findAll({
@@ -120,11 +121,11 @@ async function getPsPacketById(psId) {
   }
 }
 
-// Updated service function to handle pagination
 async function getPsPacketByIdWithPagination(psId, page, pageSize) {
+  const offset = (page - 1) * pageSize; // Calculate offset based on page number and pageSize
+
   try {
-    const offset = (page - 1) * pageSize; // Calculate offset based on page number and pageSize
-    const psPackets = await PsPacket.findAll({
+    const result = await PsPacket.findAndCountAll({
       where: {
         ps_id: psId,
       },
@@ -132,7 +133,8 @@ async function getPsPacketByIdWithPagination(psId, page, pageSize) {
       offset,
       limit: pageSize,
     });
-    return psPackets;
+
+    return result;
   } catch (error) {
     throw new Error("Error finding ps_packet by ps ID");
   }

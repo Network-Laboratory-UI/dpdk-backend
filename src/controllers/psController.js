@@ -219,7 +219,7 @@ async function getPsPacketByPsIdWithPagination(req, res) {
   }
 
   try {
-    const psPackets = await psService.getPsPacketByIdWithPagination(
+    const { count, rows: psPackets } = await psService.getPsPacketByIdWithPagination(
       psId,
       page,
       pageSize
@@ -231,9 +231,8 @@ async function getPsPacketByPsIdWithPagination(req, res) {
       });
     }
 
-    const count = await psService.getTotalCountPacketById(psId); // Get total count of packets for npbId
+    res.json({ count, psPackets }); // Send response with packets and total count
 
-    res.json({ count, psPackets });
   } catch (error) {
     console.error("Error getting ps_packet:", error);
     res.status(500).json({ error: "Internal Server Error" });

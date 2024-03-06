@@ -205,7 +205,6 @@ async function getNpbPacketByNpbId(req, res) {
   }
 }
 
-// Updated controller function to handle pagination with parameters in the request body
 async function getNpbPacketByNpbIdWithPagination(req, res) {
   const npbId = req.params.id;
   const page = parseInt(req.query.page);
@@ -217,7 +216,7 @@ async function getNpbPacketByNpbIdWithPagination(req, res) {
   }
 
   try {
-    const npbPackets = await npbService.getNpbPacketByIdWithPagination(
+    const { count, rows: npbPackets } = await npbService.getNpbPacketByIdWithPagination(
       npbId,
       page,
       pageSize
@@ -228,8 +227,6 @@ async function getNpbPacketByNpbIdWithPagination(req, res) {
         message: `No Npb Packets found for Npb with id ${npbId}`,
       });
     }
-
-    const count = await npbService.getTotalCountPacketById(npbId); // Get total count of packets for npbId
 
     res.json({ count, npbPackets }); // Send response with packets and total count
 

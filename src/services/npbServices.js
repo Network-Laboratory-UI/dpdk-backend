@@ -116,19 +116,21 @@ async function getNpbPacketById(npbId) {
 }
 
 async function getNpbPacketByIdWithPagination(npbId, page, pageSize) {
+  const offset = page * pageSize;
+  const limit = pageSize;
+
   try {
-    const offset = (page - 1) * pageSize;
-    const npbPackets = await NpbPacket.findAll({
+    const result = await NpbPacket.findAndCountAll({
       where: {
         npb_id: npbId,
       },
-      order: [["time", "DESC"]],
       offset,
-      limit: pageSize,
+      limit,
+      order: [["packet_id", "DESC"]],
     });
-    return npbPackets;
+
+    return result;
   } catch (error) {
-    console.error("Error fetching npbPackets:", error);
     throw new Error("Error finding npb_packet by npb ID");
   }
 }
