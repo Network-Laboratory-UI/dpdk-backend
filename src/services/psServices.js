@@ -87,41 +87,26 @@ async function createPsPacket({
 
 async function getTotalPsPacketById(psId) {
   try {
-    const psPackets = await PsPacket.findAll({
-      attributes: ["rstClient", "rstServer", "tx_1_count", "rx_0_count"], // Select only the required columns
-      where: {
-        ps_id: psId,
-      },
-    });
-
-    // Initialize counts
-    let totalRstClient = 0;
-    let totalRstServer = 0;
-    let totalTxCount = 0;
-    let totalRxCount = 0;
-
-    // Iterate over psPackets and sum up counts
-    psPackets.forEach((packet) => {
-      totalRstClient += packet.rstClient;
-      totalRstServer += packet.rstServer;
-      totalTxCount += packet.tx_1_count;
-      totalRxCount += packet.rx_0_count;
-    });
+    const [totalRstClient, totalRstServer, totalTxCount, totalRxCount] = await Promise.all([
+      PsPacket.sum('rstClient', { where: { ps_id: psId } }),
+      PsPacket.sum('rstServer', { where: { ps_id: psId } }),
+      PsPacket.sum('tx_1_count', { where: { ps_id: psId } }),
+      PsPacket.sum('rx_0_count', { where: { ps_id: psId } }),
+    ]);
 
     // Return the totals
     return {
-        psPacket: {
-        rstClient: totalRstClient,
-        rstServer: totalRstServer,
-        tx_1_count: totalTxCount,
-        rx_0_count: totalRxCount,
-      }
+      psPackets: {
+        rstClient: totalRstClient || 0,
+        rstServer: totalRstServer || 0,
+        tx_1_count: totalTxCount || 0,
+        rx_0_count: totalRxCount || 0,
+      },
     };
   } catch (error) {
     throw new Error("Error finding ps_packet by ps ID");
   }
 }
-
 async function getPsPacketById(psId) {
   try {
     const psPackets = await PsPacket.findAll({
@@ -143,12 +128,27 @@ async function getPsPacketByIdWithPagination(psId, page, pageSize) {
       where: {
         ps_id: psId,
       },
-      offset, // Apply offset
-      limit: pageSize, // Apply limit
+      order: [["time", "DESC"]],
+      offset,
+      limit: pageSize,
     });
     return psPackets;
   } catch (error) {
     throw new Error("Error finding ps_packet by ps ID");
+  }
+}
+
+async function getTotalCountPacketById(psId) {
+  try {
+    const psPackets = await PsPacket.count({
+      where: {
+        ps_id: psId,
+      },
+    });
+
+    return psPackets;
+  } catch (error) {
+    throw new Error("Error finding npb_packet by ps ID");
   }
 }
 
@@ -341,6 +341,7 @@ module.exports = {
   getTotalPsPacketById,
   getPsPacketById,
   getPsPacketByIdWithPagination,
+  getTotalCountPacketById,
   createHeartbeat,
   getAllHeartbeatbyPsId,
   getPsHeartbeatByPsId,

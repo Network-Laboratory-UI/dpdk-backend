@@ -229,7 +229,10 @@ async function getNpbPacketByNpbIdWithPagination(req, res) {
       });
     }
 
-    res.json(npbPackets);
+    const count = await npbService.getTotalCountPacketById(npbId); // Get total count of packets for npbId
+
+    res.json({ count, npbPackets }); // Send response with packets and total count
+
   } catch (error) {
     console.error("Error getting npb_packet:", error);
     res.status(500).json({ error: "Internal Server Error" });

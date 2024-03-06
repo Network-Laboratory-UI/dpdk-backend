@@ -81,35 +81,21 @@ async function createNpbPacket({
 
 async function getTotalNpbPacketById(npbId) {
   try {
-    const npbPackets = await NpbPacket.findAll({
-      attributes: ["http_count", "https_count", "tx_0_count", "rx_1_count"], // Select only the required columns
-      where: {
-        npb_id: npbId,
-      },
-    });
-
-    // Initialize counts
-    let totalHttpCount = 0;
-    let totalHttpsCount = 0;
-    let totalTxCount = 0;
-    let totalRxCount = 0;
-
-    // Iterate over npbPackets and sum up counts
-    npbPackets.forEach((packet) => {
-      totalHttpCount += packet.http_count;
-      totalHttpsCount += packet.https_count;
-      totalTxCount += packet.tx_0_count;
-      totalRxCount += packet.rx_1_count;
-    });
+    const [totalHttpCount, totalHttpsCount, totalTxCount, totalRxCount] = await Promise.all([
+      NpbPacket.sum('http_count', { where: { npb_id: npbId } }),
+      NpbPacket.sum('https_count', { where: { npb_id: npbId } }),
+      NpbPacket.sum('tx_0_count', { where: { npb_id: npbId } }),
+      NpbPacket.sum('rx_1_count', { where: { npb_id: npbId } }),
+    ]);
 
     // Return the totals
-    return { 
-      npbPackets:{
-        http_count: totalHttpCount,
-        https_count: totalHttpsCount,
-        tx_0_count: totalTxCount,
-        rx_1_count: totalRxCount,
-      }
+    return {
+      npbPackets: {
+        http_count: totalHttpCount || 0,
+        https_count: totalHttpsCount || 0,
+        tx_0_count: totalTxCount || 0,
+        rx_1_count: totalRxCount || 0,
+      },
     };
   } catch (error) {
     throw new Error("Error finding npb_packet by npb ID");
@@ -129,21 +115,38 @@ async function getNpbPacketById(npbId) {
   }
 }
 
-// Updated service function to handle pagination
 async function getNpbPacketByIdWithPagination(npbId, page, pageSize) {
   try {
-    const offset = (page - 1) * pageSize; // Calculate offset based on page number and pageSize
+    const offset = (page - 1) * pageSize;
     const npbPackets = await NpbPacket.findAll({
       where: {
         npb_id: npbId,
       },
-      offset, // Apply offset
-      limit: pageSize, // Apply limit
+      order: [["time", "DESC"]],
+      offset,
+      limit: pageSize,
     });
     return npbPackets;
   } catch (error) {
+    console.error("Error fetching npbPackets:", error);
     throw new Error("Error finding npb_packet by npb ID");
   }
+}
+
+async function getTotalCountPacketById(npbId) {
+  try {
+    const npbPackets = await NpbPacket.count({
+      where: {
+        npb_id: npbId,
+      },
+    });
+
+    return npbPackets;
+  }
+  catch (error) {
+    throw new Error("Error finding npb_packet by npb ID");
+  }
+
 }
 
 
@@ -226,6 +229,7 @@ module.exports = {
   getTotalNpbPacketById,
   getNpbPacketById,
   getNpbPacketByIdWithPagination,
+  getTotalCountPacketById,
   createHeartbeat,
   getNpbHeartbeatByNpbId,
   getAllHeartbeatbyNpbId,
