@@ -200,6 +200,16 @@ async function getNpbHeartbeatByNpbId(npb_id) {
 
     // Check if any alive heartbeats found
     const isAlive = npbUtils.checkHeartbeat(heartbeatDataValues);
+
+    // If isAlive is true, purge all data for the npb_id
+    if (isAlive) {
+      await NpbHeartbeat.destroy({
+        where: {
+          npb_id,
+        },
+      });
+    }
+
     return isAlive;
   } catch (error) {
     throw new Error("Error finding heartbeat by npb ID");

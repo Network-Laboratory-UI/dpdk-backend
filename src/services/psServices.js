@@ -202,6 +202,16 @@ async function getPsHeartbeatByPsId(ps_id) {
 
     // Check if any alive heartbeats found
     const isAlive = psUtils.checkHeartbeat(heartbeatDataValues);
+
+    // If isAlive is true, purge all data for the npb_id
+    if (isAlive) {
+      await PsHeartbeat.destroy({
+        where: {
+          ps_id,
+        },
+      });
+    }
+    
     return isAlive;
   } catch (error) {
     throw new Error("Error finding heartbeat by ps ID");
