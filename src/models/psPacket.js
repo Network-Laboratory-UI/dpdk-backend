@@ -6,10 +6,9 @@ const PsPacket = db.define(
   "ps_packet",
   {
     packet_id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      // autoIncrement: true,
+      autoIncrement: true,
     },
     ps_id: {
       type: DataTypes.UUID,
@@ -106,13 +105,6 @@ const PsPacket = db.define(
   }
 );
 
-(async () => {
-  try {
-    await db.sync();
-    console.log("Database synchronized.");
-  } catch (error) {
-    console.error("Error synchronizing database:", error);
-  }
-})();
+db.sync();
 
 module.exports = PsPacket;

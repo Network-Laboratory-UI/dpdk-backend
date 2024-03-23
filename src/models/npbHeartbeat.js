@@ -1,21 +1,20 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const db = require("../config/dpdkDatabase");
-const Npb = require("./npb"); // Import Npb model
+const npb = require("./npb"); // Import npb model
 
-const NpbHeartbeat = db.define(
-  "heartbeat",
+const npbHeartbeat = db.define(
+  "npb_heartbeat",
   {
     heartbeat_id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      // autoIncrement: true,
+      autoIncrement: true,
     },
     npb_id: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: Npb,
+        model: npb,
         key: "id",
       },
     },
@@ -30,8 +29,6 @@ const NpbHeartbeat = db.define(
   }
 );
 
-// Define association
-NpbHeartbeat.belongsTo(Npb, { foreignKey: "npb_id" });
+db.sync();
 
-module.exports = NpbHeartbeat;
-
+module.exports = npbHeartbeat;

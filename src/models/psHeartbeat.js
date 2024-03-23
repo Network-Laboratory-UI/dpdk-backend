@@ -3,13 +3,12 @@ const db = require("../config/dpdkDatabase");
 const ps = require("./ps"); // Import PS model
 
 const PsHeartbeat = db.define(
-  "heartbeat",
+  "psheartbeat",
   {
     heartbeat_id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      // autoIncrement: true,
+      autoIncrement: true,
     },
     ps_id: {
       type: DataTypes.UUID,
@@ -31,6 +30,8 @@ const PsHeartbeat = db.define(
 );
 
 // Define association
-PsHeartbeat.belongsTo(ps, { foreignKey: "ps_id" });
+// PsHeartbeat.belongsTo(ps, { foreignKey: "ps_id" });
+
+db.sync();
 
 module.exports = PsHeartbeat;

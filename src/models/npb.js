@@ -39,5 +39,5 @@ const Npb = db.define(
   }
 );
 
-db.sync({force: true});
+db.sync();
 module.exports = Npb;

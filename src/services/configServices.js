@@ -3,7 +3,7 @@ const Config = require("../models/configData");
 async function createConfig(
   npbId,
   psId,
-  backend_ip,
+  hostname,
   txRingSize,
   numMbufs,
   mbufCacheSize,
@@ -20,7 +20,7 @@ async function createConfig(
     const config = await Config.create({
       npbId,
       psId,
-      backend_ip,
+      hostname,
       txRingSize,
       numMbufs,
       mbufCacheSize,

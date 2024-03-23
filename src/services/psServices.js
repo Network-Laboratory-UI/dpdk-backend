@@ -85,6 +85,29 @@ async function createPsPacket({
   }
 }
 
+async function getTotalPsPacketById(psId) {
+  try {
+    const [totalRstClient, totalRstServer, totalTxCount, totalRxCount] = await Promise.all([
+      PsPacket.sum('rstClient', { where: { ps_id: psId } }),
+      PsPacket.sum('rstServer', { where: { ps_id: psId } }),
+      PsPacket.sum('tx_1_count', { where: { ps_id: psId } }),
+      PsPacket.sum('rx_0_count', { where: { ps_id: psId } }),
+    ]);
+
+    // Return the totals
+    return {
+      psPackets: {
+        rstClient: totalRstClient || 0,
+        rstServer: totalRstServer || 0,
+        tx_1_count: totalTxCount || 0,
+        rx_0_count: totalRxCount || 0,
+      },
+    };
+  } catch (error) {
+    throw new Error("Error finding ps_packet by ps ID");
+  }
+}
+
 async function getPsPacketById(psId) {
   try {
     const psPackets = await PsPacket.findAll({
@@ -98,20 +121,36 @@ async function getPsPacketById(psId) {
   }
 }
 
-// Updated service function to handle pagination
 async function getPsPacketByIdWithPagination(psId, page, pageSize) {
+  const offset = (page - 1) * pageSize; // Calculate offset based on page number and pageSize
+
   try {
-    const offset = (page - 1) * pageSize; // Calculate offset based on page number and pageSize
-    const psPackets = await PsPacket.findAll({
+    const result = await PsPacket.findAndCountAll({
       where: {
         ps_id: psId,
       },
-      offset, // Apply offset
-      limit: pageSize, // Apply limit
+      order: [["time", "DESC"]],
+      offset,
+      limit: pageSize,
     });
-    return psPackets;
+
+    return result;
   } catch (error) {
     throw new Error("Error finding ps_packet by ps ID");
+  }
+}
+
+async function getTotalCountPacketById(psId) {
+  try {
+    const psPackets = await PsPacket.count({
+      where: {
+        ps_id: psId,
+      },
+    });
+
+    return psPackets;
+  } catch (error) {
+    throw new Error("Error finding npb_packet by ps ID");
   }
 }
 
@@ -163,6 +202,16 @@ async function getPsHeartbeatByPsId(ps_id) {
 
     // Check if any alive heartbeats found
     const isAlive = psUtils.checkHeartbeat(heartbeatDataValues);
+
+    // If isAlive is true, purge all data for the npb_id
+    if (isAlive) {
+      await PsHeartbeat.destroy({
+        where: {
+          ps_id,
+        },
+      });
+    }
+    
     return isAlive;
   } catch (error) {
     throw new Error("Error finding heartbeat by ps ID");
@@ -202,7 +251,13 @@ async function createPsBlockedList(name, domain, ip_add) {
 async function getAllPsBlockedList() {
   try {
     // Retrieve all blocked list records
-    const blockedList = await PsBlockedList.findAll();
+    const blockedList = await PsBlockedList.findAll(
+      {
+        order: [
+          ["id", "ASC"],
+        ],
+      }
+    );
 
     // Check if any blocked list records exist
     if (blockedList.length === 0) {
@@ -253,6 +308,41 @@ async function updatePsBlockedList(id, name, domain, ip_add) {
   }
 }
 
+async function updateBlockedListHitCount(id, newHitCount) {
+  // Fetch all blocked lists from the database
+  const blockedLists = await getAllPsBlockedList();
+
+  // Check if the provided id exists in the blocked lists
+  const idExists = blockedLists.some((list) => list.id === id);
+
+  // If the id does not exist, throw an error
+  if (!idExists) {
+    throw new Error(`Blocked list with id ${id} not found`);
+  }
+
+  // Find the specific blocked list using the provided id
+  const blockedList = blockedLists.find((list) => list.id === id);
+
+  // Get the current hit count
+  const currentHitCount = blockedList.hit_count;
+
+  // Parsing integer
+  const intCurrentHitCount = parseInt(currentHitCount, 10);
+  const intNewHitCount = parseInt(newHitCount, 10);
+
+  // Add the new hit count to the current hit count
+  const totalHitCount = intCurrentHitCount + intNewHitCount;
+
+  // Update the blocked list in the database with the new total hit count
+  const updatedBlockedList = await PsBlockedList.update(
+    { hit_count: totalHitCount },
+    { where: { id: id } }
+  );
+
+  // Return the updated blocked list
+  return updatedBlockedList;
+}
+
 module.exports = {
   getAllModifiedPSs,
   getPSById,
@@ -260,8 +350,10 @@ module.exports = {
   getPSByStatus,
   getPSByLocation,
   createPsPacket,
+  getTotalPsPacketById,
   getPsPacketById,
   getPsPacketByIdWithPagination,
+  getTotalCountPacketById,
   createHeartbeat,
   getAllHeartbeatbyPsId,
   getPsHeartbeatByPsId,
@@ -269,5 +361,6 @@ module.exports = {
   createPsBlockedList,
   getAllPsBlockedList,
   updatePsBlockedList,
+  updateBlockedListHitCount,
   deletePsBlockedList,
 };

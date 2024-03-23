@@ -28,20 +28,22 @@ const PsBlockedList = db.define(
       defaultValue: 0,
       allowNull: false,
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+    },
   },
   {
     tableName: "ps_blocked_list",
-    timestamps: false,
   }
 );
 
-(async () => {
-  try {
-    await db.sync();
-    console.log("Database synchronized.");
-  } catch (error) {
-    console.error("Error synchronizing database:", error);
-  }
-})();
+db.sync();
 
 module.exports = PsBlockedList;

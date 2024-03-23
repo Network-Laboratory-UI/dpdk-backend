@@ -6,10 +6,9 @@ const NpbPacket = db.define(
   "npb_packet",
   {
     packet_id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      // autoIncrement: true,
+      autoIncrement: true,
     },
     npb_id: {
       type: DataTypes.UUID,
@@ -31,67 +30,99 @@ const NpbPacket = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_count: {
+    rx_i_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_0_count: {
+    tx_i_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_size: {
+    rx_i_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_0_size: {
+    tx_i_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_drop: {
+    rx_i_drop: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_error: {
+    rx_i_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_0_error: {
+    tx_i_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_mbuf: {
+    rx_i_mbuf: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_count: {
+    rx_o_http_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_1_count: {
+    tx_o_http_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_size: {
+    rx_o_http_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_1_size: {
+    tx_o_http_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_drop: {
+    rx_o_http_drop: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_error: {
+    rx_o_http_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_1_error: {
+    tx_o_http_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_mbuf: {
+    rx_o_http_mbuf: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_count: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_tls_count: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_tls_size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_drop: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_error: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_tls_error: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_mbuf: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -103,6 +134,10 @@ const NpbPacket = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    service_time: {
+      type: DataTypes.DOUBLE,
+      allowNull: false,
+    },
   },
   {
     tableName: "npb_packet",
@@ -110,13 +145,6 @@ const NpbPacket = db.define(
   }
 );
 
-(async () => {
-  try {
-    await db.sync();
-
-  } catch (error) {
-    console.error("Error synchronizing database:", error);
-  }
-})();
+db.sync();
 
 module.exports = NpbPacket;

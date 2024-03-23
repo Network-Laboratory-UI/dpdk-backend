@@ -5,7 +5,7 @@ const npbUtils = require("../utils/npbUtils");
 async function getAllNpbs(req, res) {
   try {
     const npbs = await npbService.getAllModifiedNpbs();
-    res.json(npbs.sort((a, b) => a.id - b.id));
+    res.json(npbs.sort((a, b) => a.name.localeCompare(b.name)));
   } catch (error) {
     console.error("Error getting npbs:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -93,24 +93,33 @@ async function createNpbPacket(req, res) {
         http_count,
         https_count,
         no_match,
-        rx_0_count,
-        tx_0_count,
-        rx_0_size,
-        tx_0_size,
-        rx_0_drop,
-        rx_0_error,
-        tx_0_error,
-        rx_0_mbuf,
-        rx_1_count,
-        tx_1_count,
-        rx_1_size,
-        tx_1_size,
-        rx_1_drop,
-        rx_1_error,
-        tx_1_error,
-        rx_1_mbuf,
+        rx_i_count,
+        tx_i_count,
+        rx_i_size,
+        tx_i_size,
+        rx_i_drop,
+        rx_i_error,
+        tx_i_error,
+        rx_i_mbuf,
+        rx_o_http_count,
+        tx_o_http_count,
+        rx_o_http_size,
+        tx_o_http_size,
+        rx_o_http_drop,
+        rx_o_http_error,
+        tx_o_http_error,
+        rx_o_http_mbuf,
+        rx_o_tls_count,
+        tx_o_tls_count,
+        rx_o_tls_size,
+        tx_o_tls_size,
+        rx_o_tls_drop,
+        rx_o_tls_error,
+        tx_o_tls_error,
+        rx_o_tls_mbuf,
         time,
         throughput,
+        service_time
       } = packet;
 
       // Check if the npb with the provided npb_id exists
@@ -126,24 +135,33 @@ async function createNpbPacket(req, res) {
         http_count,
         https_count,
         no_match,
-        rx_0_count,
-        tx_0_count,
-        rx_0_size,
-        tx_0_size,
-        rx_0_drop,
-        rx_0_error,
-        tx_0_error,
-        rx_0_mbuf,
-        rx_1_count,
-        tx_1_count,
-        rx_1_size,
-        tx_1_size,
-        rx_1_drop,
-        rx_1_error,
-        tx_1_error,
-        rx_1_mbuf,
+        rx_i_count,
+        tx_i_count,
+        rx_i_size,
+        tx_i_size,
+        rx_i_drop,
+        rx_i_error,
+        tx_i_error,
+        rx_i_mbuf,
+        rx_o_http_count,
+        tx_o_http_count,
+        rx_o_http_size,
+        tx_o_http_size,
+        rx_o_http_drop,
+        rx_o_http_error,
+        tx_o_http_error,
+        rx_o_http_mbuf,
+        rx_o_tls_count,
+        tx_o_tls_count,
+        rx_o_tls_size,
+        tx_o_tls_size,
+        rx_o_tls_drop,
+        rx_o_tls_error,
+        tx_o_tls_error,
+        rx_o_tls_mbuf,
         time,
         throughput,
+        service_time
       });
 
       results.push(npbPacket);
@@ -154,6 +172,30 @@ async function createNpbPacket(req, res) {
   } catch (error) {
     console.error("Error creating NpbPackets:", error);
     res.status(500).json({ error: error.message });
+  }
+}
+
+async function geTotalNpbPacketByNpbId(req, res) {
+  const npbId = req.params.id;
+
+  // Check if npbId is null or undefined
+  if (!npbId) {
+    return res.status(400).json({ error: "Npb ID is required." });
+  }
+
+  try {
+    const npbPackets = await npbService.getTotalNpbPacketById(npbId);
+
+    if (npbPackets.length === 0) {
+      return res.json({
+        message: `No Npb Packets found for Npb with id ${npbId}`,
+      });
+    }
+
+    res.json(npbPackets);
+  } catch (error) {
+    console.error("Error getting npb_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
@@ -181,7 +223,6 @@ async function getNpbPacketByNpbId(req, res) {
   }
 }
 
-// Updated controller function to handle pagination with parameters in the request body
 async function getNpbPacketByNpbIdWithPagination(req, res) {
   const npbId = req.params.id;
   const page = parseInt(req.query.page);
@@ -193,7 +234,7 @@ async function getNpbPacketByNpbIdWithPagination(req, res) {
   }
 
   try {
-    const npbPackets = await npbService.getNpbPacketByIdWithPagination(
+    const { count, rows: npbPackets } = await npbService.getNpbPacketByIdWithPagination(
       npbId,
       page,
       pageSize
@@ -205,98 +246,12 @@ async function getNpbPacketByNpbIdWithPagination(req, res) {
       });
     }
 
-    res.json(npbPackets);
+    res.json({ count, npbPackets }); // Send response with packets and total count
+
   } catch (error) {
     console.error("Error getting npb_packet:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-}
-
-async function createConfig(req, res) {
-  try {
-    const {
-      npbId,
-      psId,
-      backend_ip,
-      txRingSize,
-      numMbufs,
-      mbufCacheSize,
-      burstSize,
-      maxTcpPayloadLen,
-      statFile,
-      statFileExt,
-      timerPeriodStats,
-      timerPeriodSend,
-      maxPacketLen,
-      rxRingSize,
-    } = req.body;
-
-    if (
-      !npbId ||
-      !psId ||
-      !backend_ip ||
-      !txRingSize ||
-      !numMbufs ||
-      !mbufCacheSize ||
-      !burstSize ||
-      !maxTcpPayloadLen ||
-      !statFile ||
-      !statFileExt ||
-      !timerPeriodStats ||
-      !timerPeriodSend ||
-      !maxPacketLen ||
-      !rxRingSize
-    ) {
-      return res.status(400).json({ error: "All fields are required" });
-    }
-
-    const configData = await npbService.createConfig(
-      npbId,
-      psId,
-      backend_ip,
-      txRingSize,
-      numMbufs,
-      mbufCacheSize,
-      burstSize,
-      maxTcpPayloadLen,
-      statFile,
-      statFileExt,
-      timerPeriodStats,
-      timerPeriodSend,
-      maxPacketLen,
-      rxRingSize
-    );
-    res.json(configData);
-  } catch (error) {
-    console.error("Error creating config data:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-}
-
-async function getConfigById(req, res) {
-    const id = req.params.id; // Extract the ID from the route parameters
-
-    try {
-        // Check if ID is provided
-        if (!id) {
-            return res.status(400).json({ error: "ID must be provided" });
-        }
-
-        let configData = await npbService.getConfigById(id, "npb");
-
-        if (!configData) {
-            configData = await npbService.getConfigById(id, "ps");
-        }
-
-        if (!configData) {
-            return res.status(404).json({ error: `Config Data not found` });
-        }
-
-        res.json(configData);
-    } catch (error) {
-        console.error("Error getting Config Data:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
 }
 
 async function createNpbHeartbeat(req, res) {
@@ -331,7 +286,7 @@ async function createNpbHeartbeat(req, res) {
     }
 
     // Send success response with created heartbeat records
-    res.status(201).json({
+    res.status(200).json({
       message: "Heartbeats created successfully",
       heartbeats: results,
     });
@@ -408,10 +363,9 @@ module.exports = {
   getNpbByStatus,
   getNpbByLocation,
   createNpbPacket,
+  geTotalNpbPacketByNpbId,
   getNpbPacketByNpbId,
   getNpbPacketByNpbIdWithPagination,
-  createConfig,
-  getConfigById,
   createNpbHeartbeat,
   getNpbHeartbeatByNpbId,
   performHeartbeatCheck,

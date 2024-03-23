@@ -30,24 +30,33 @@ async function createNpbPacket({
   http_count,
   https_count,
   no_match,
-  rx_0_count,
-  tx_0_count,
-  rx_0_size,
-  tx_0_size,
-  rx_0_drop,
-  rx_0_error,
-  tx_0_error,
-  rx_0_mbuf,
-  rx_1_count,
-  tx_1_count,
-  rx_1_size,
-  tx_1_size,
-  rx_1_drop,
-  rx_1_error,
-  tx_1_error,
-  rx_1_mbuf,
+  rx_i_count,
+  tx_i_count,
+  rx_i_size,
+  tx_i_size,
+  rx_i_drop,
+  rx_i_error,
+  tx_i_error,
+  rx_i_mbuf,
+  rx_o_http_count,
+  tx_o_http_count,
+  rx_o_http_size,
+  tx_o_http_size,
+  rx_o_http_drop,
+  rx_o_http_error,
+  tx_o_http_error,
+  rx_o_http_mbuf,
+  rx_o_tls_count,
+  tx_o_tls_count,
+  rx_o_tls_size,
+  tx_o_tls_size,
+  rx_o_tls_drop,
+  rx_o_tls_error,
+  tx_o_tls_error,
+  rx_o_tls_mbuf,
   time,
   throughput,
+  service_time,
 }) {
   try {
     return await NpbPacket.create({
@@ -55,27 +64,67 @@ async function createNpbPacket({
       http_count,
       https_count,
       no_match,
-      rx_0_count,
-      tx_0_count,
-      rx_0_size,
-      tx_0_size,
-      rx_0_drop,
-      rx_0_error,
-      tx_0_error,
-      rx_0_mbuf,
-      rx_1_count,
-      tx_1_count,
-      rx_1_size,
-      tx_1_size,
-      rx_1_drop,
-      rx_1_error,
-      tx_1_error,
-      rx_1_mbuf,
+      rx_i_count,
+      tx_i_count,
+      rx_i_size,
+      tx_i_size,
+      rx_i_drop,
+      rx_i_error,
+      tx_i_error,
+      rx_i_mbuf,
+      rx_o_http_count,
+      tx_o_http_count,
+      rx_o_http_size,
+      tx_o_http_size,
+      rx_o_http_drop,
+      rx_o_http_error,
+      tx_o_http_error,
+      rx_o_http_mbuf,
+      rx_o_tls_count,
+      tx_o_tls_count,
+      rx_o_tls_size,
+      tx_o_tls_size,
+      rx_o_tls_drop,
+      rx_o_tls_error,
+      tx_o_tls_error,
+      rx_o_tls_mbuf,
       time,
       throughput,
+      service_time,
     });
   } catch (error) {
-    throw new Error("Error creating npb_packet");
+    throw new Error(`Error creating npb_packet: ${error.message}`);
+  }
+}
+
+async function getTotalNpbPacketById(npbId) {
+  try {
+    const [
+      totalHttpCount,
+      totalHttpsCount,
+      totalOHttpCount,
+      totalOTlsCount,
+      totalRxCount,
+    ] = await Promise.all([
+      NpbPacket.sum("http_count", { where: { npb_id: npbId } }),
+      NpbPacket.sum("https_count", { where: { npb_id: npbId } }),
+      NpbPacket.sum("tx_o_http_count", { where: { npb_id: npbId } }),
+      NpbPacket.sum("tx_o_tls_count", { where: { npb_id: npbId } }),
+      NpbPacket.sum("rx_i_count", { where: { npb_id: npbId } }),
+    ]);
+
+    // Return the totals
+    return {
+      npbPackets: {
+        http_count: totalHttpCount || 0,
+        https_count: totalHttpsCount || 0,
+        tx_o_http_count: totalOHttpCount || 0,
+        tx_o_tls_count: totalOTlsCount || 0,
+        rx_i_count: totalRxCount || 0,
+      },
+    };
+  } catch (error) {
+    throw new Error("Error finding npb_packet by npb ID");
   }
 }
 
@@ -92,93 +141,43 @@ async function getNpbPacketById(npbId) {
   }
 }
 
-// Updated service function to handle pagination
 async function getNpbPacketByIdWithPagination(npbId, page, pageSize) {
+  const offset = (page - 1) * pageSize;
+  const limit = pageSize;
+
   try {
-    const offset = (page - 1) * pageSize; // Calculate offset based on page number and pageSize
-    const npbPackets = await NpbPacket.findAll({
+    const result = await NpbPacket.findAndCountAll({
       where: {
         npb_id: npbId,
       },
-      offset, // Apply offset
-      limit: pageSize, // Apply limit
+      offset,
+      limit,
+      order: [["packet_id", "DESC"]],
     });
+
+    return result;
+  } catch (error) {
+    throw new Error("Error finding npb_packet by npb ID");
+  }
+}
+
+async function getTotalCountPacketById(npbId) {
+  try {
+    const npbPackets = await NpbPacket.count({
+      where: {
+        npb_id: npbId,
+      },
+    });
+
     return npbPackets;
   } catch (error) {
     throw new Error("Error finding npb_packet by npb ID");
   }
 }
 
-async function createConfig(
-  npbId,
-  psId,
-  backend_ip,
-  txRingSize,
-  numMbufs,
-  mbufCacheSize,
-  burstSize,
-  maxTcpPayloadLen,
-  statFile,
-  statFileExt,
-  timerPeriodStats,
-  timerPeriodSend,
-  maxPacketLen,
-  rxRingSize
-) {
-  try {
-    const config = await Config.create({
-      npbId,
-      psId,
-      backend_ip,
-      txRingSize,
-      numMbufs,
-      mbufCacheSize,
-      burstSize,
-      maxTcpPayloadLen,
-      statFile,
-      statFileExt,
-      timerPeriodStats,
-      timerPeriodSend,
-      maxPacketLen,
-      rxRingSize,
-    });
-    return config;
-  } catch (error) {
-    throw new Error("Error creating config");
-  }
-}
-
-async function getConfigById(id, type) {
-  try {
-    let config;
-    if (type === "npb") {
-      // Retrieve NPB configuration based on the provided ID
-      config = await Config.findOne({
-        where: {
-          npbId: id,
-        },
-      });
-    } else if (type === "ps") {
-      // Retrieve PS configuration based on the provided ID
-      config = await Config.findOne({
-        where: {
-          psId: id,
-        },
-      });
-    } else {
-      throw new Error("Invalid type parameter");
-    }
-
-    return config;
-  } catch (error) {
-    throw new Error("Error finding config by ID");
-  }
-}
-
-
 async function createHeartbeat(npb_id, time) {
   try {
-    console.log(npb_id, time);
+    console.log("Nyoba Heartbeat:", npb_id, time);
     const heartbeat = await NpbHeartbeat.create({
       npb_id,
       time,
@@ -224,6 +223,16 @@ async function getNpbHeartbeatByNpbId(npb_id) {
 
     // Check if any alive heartbeats found
     const isAlive = npbUtils.checkHeartbeat(heartbeatDataValues);
+
+    // If isAlive is true, purge all data for the npb_id
+    if (isAlive) {
+      await NpbHeartbeat.destroy({
+        where: {
+          npb_id,
+        },
+      });
+    }
+
     return isAlive;
   } catch (error) {
     throw new Error("Error finding heartbeat by npb ID");
@@ -252,10 +261,10 @@ module.exports = {
   getNpbByStatus,
   getNpbByLocation,
   createNpbPacket,
+  getTotalNpbPacketById,
   getNpbPacketById,
   getNpbPacketByIdWithPagination,
-  createConfig,
-  getConfigById,
+  getTotalCountPacketById,
   createHeartbeat,
   getNpbHeartbeatByNpbId,
   getAllHeartbeatbyNpbId,

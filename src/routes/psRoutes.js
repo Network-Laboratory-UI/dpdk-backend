@@ -14,11 +14,12 @@ router.post("/status", psController.getPSByStatus);
 router.post("/location", psController.getPSByLocation);
 
 router.post("/ps-packet", psController.createPsPacket);
-router.get('/ps-packet/:id', psController.getPsPacketByPsId);
+router.get('/ps-packet-total/:id', psController.getTotalPsPacketByPsId);
 router.get(
   "/ps-packet-page/:id",
   psController.getPsPacketByPsIdWithPagination
 );
+router.get("/ps-packet/:id", psController.getPsPacketByPsId);
 
 // Route for Hearbeat
 router.post("/heartbeat", psController.createPsHeartbeat);
@@ -29,5 +30,6 @@ router.post("/blocked-list", psController.createPsBlockedList);
 router.get('/blocked-list', psController.getPsBlockedList);
 router.put('/blocked-list/:id', psController.updatePsBlockedList);
 router.delete('/blocked-list/:id', psController.deletePsBlockedList);
+router.put('/blocked-list-count', psController.updateBlockedListHitCount);
 
 module.exports = router;

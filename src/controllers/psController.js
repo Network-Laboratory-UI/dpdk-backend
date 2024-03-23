@@ -5,7 +5,7 @@ const producer = require("../config/kafkaConfig");
 async function getAllPSs(req, res) {
   try {
     const psInstances = await psService.getAllModifiedPSs();
-    res.json(psInstances.sort((a, b) => a.id - b.id));
+    res.json(psInstances.sort((a, b) => a.name.localeCompare(b.name)));
   } catch (error) {
     console.error("Error getting PS instances:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -159,6 +159,30 @@ async function createPsPacket(req, res) {
   }
 }
 
+async function getTotalPsPacketByPsId(req, res) {
+  const psId = req.params.id;
+
+  // Check if psId is null or undefined
+  if (!psId) {
+    return res.status(400).json({ error: "Ps ID is required." });
+  }
+
+  try {
+    const psPackets = await psService.getTotalPsPacketById(psId);
+
+    if (psPackets.length === 0) {
+      return res.json({
+        message: `No Ps Packets found for Ps with id ${psId}`,
+      });
+    }
+
+    res.json(psPackets);
+  } catch (error) {
+    console.error("Error getting ps_packet:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function getPsPacketByPsId(req, res) {
   const psId = req.params.id;
 
@@ -195,7 +219,7 @@ async function getPsPacketByPsIdWithPagination(req, res) {
   }
 
   try {
-    const psPackets = await psService.getPsPacketByIdWithPagination(
+    const { count, rows: psPackets } = await psService.getPsPacketByIdWithPagination(
       psId,
       page,
       pageSize
@@ -207,7 +231,8 @@ async function getPsPacketByPsIdWithPagination(req, res) {
       });
     }
 
-    res.json(psPackets);
+    res.json({ count, psPackets }); // Send response with packets and total count
+
   } catch (error) {
     console.error("Error getting ps_packet:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -327,15 +352,19 @@ async function createPsBlockedList(req, res) {
       ip_add
     );
 
-    producer.send({
-      topic: "dpdk-blocked-list",
-      messages: [
-        {
-          key: "List",
-          value: JSON.stringify({createdBlockedList, type: "create"})
-        },
-      ],
-    });
+    // Check if the blocked list was successfully created
+    if (createdBlockedList) {
+      // Send message only if the blocked list was created successfully
+      producer.send({
+        topic: "dpdk-blocked-list",
+        messages: [
+          {
+            key: "List",
+            value: JSON.stringify({ createdBlockedList, type: "create" }),
+          },
+        ],
+      });
+    }
 
     res.status(200).json({ message: "Success", createdBlockedList });
   } catch (error) {
@@ -355,7 +384,7 @@ async function getPsBlockedList(req, res) {
       });
     }
 
-    res.json(psBlockedList.sort((a, b) => a.id - b.id));
+    res.json(psBlockedList.sort((a, b) => b.createdAt - a.createdAt));
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -365,12 +394,14 @@ async function deletePsBlockedList(req, res) {
   try {
     const id = req.params.id;
     const deletedBlockedList = await psService.deletePsBlockedList(id);
+
     if (!deletedBlockedList) {
       return res
         .status(404)
         .json({ error: `Blocked list with id ${id} not found` });
     }
 
+    // Send message only if the blocked list was deleted successfully
     producer.send({
       topic: "dpdk-blocked-list",
       messages: [
@@ -380,6 +411,7 @@ async function deletePsBlockedList(req, res) {
         },
       ],
     });
+
     res.status(200).json({
       message: "Blocked list successfully deleted",
       deletedBlockedList,
@@ -424,6 +456,54 @@ async function updatePsBlockedList(req, res) {
   }
 }
 
+async function updateBlockedListHitCount(req, res) {
+  try {
+    const blockedLists = req.body;
+    const updatedBlockedListResults = [];
+
+    // Fetch all blocked lists from the service
+    const allBlockedLists = await psService.getAllPsBlockedList();
+
+    for (let blockedList of blockedLists) {
+      const { id, hit_count } = blockedList;
+
+      // Skip if id is empty
+      if (!id) {
+        updatedBlockedListResults.push({
+          id,
+          error: "id is empty",
+        });
+        continue;
+      }
+
+      // Check if the id exists in the list of all blocked lists
+      const idExists = allBlockedLists.some((list) => list.id === id);
+
+      if (!idExists) {
+        updatedBlockedListResults.push({
+          id,
+          error: `Blocked list with id ${id} not found`,
+        });
+        continue;
+      }
+
+      const updatedBlockedList = await psService.updateBlockedListHitCount(
+        id,
+        hit_count
+      );
+
+      updatedBlockedListResults.push({
+        id,
+        message: "Blocked list hit count successfully updated",
+      });
+    }
+
+    res.status(200).json(updatedBlockedListResults);
+  } catch (error) {
+    console.error("Error updating blocked list hit counts:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
 
 module.exports = {
   getAllPSs,
@@ -432,6 +512,7 @@ module.exports = {
   getPSByStatus,
   getPSByLocation,
   createPsPacket,
+  getTotalPsPacketByPsId,
   getPsPacketByPsId,
   getPsPacketByPsIdWithPagination,
   createPsHeartbeat,
@@ -440,5 +521,6 @@ module.exports = {
   createPsBlockedList,
   getPsBlockedList,
   updatePsBlockedList,
+  updateBlockedListHitCount,
   deletePsBlockedList,
 };
