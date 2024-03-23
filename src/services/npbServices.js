@@ -56,7 +56,7 @@ async function createNpbPacket({
   rx_o_tls_mbuf,
   time,
   throughput,
-  service_time
+  service_time,
 }) {
   try {
     return await NpbPacket.create({
@@ -90,7 +90,7 @@ async function createNpbPacket({
       rx_o_tls_mbuf,
       time,
       throughput,
-      service_time
+      service_time,
     });
   } catch (error) {
     throw new Error(`Error creating npb_packet: ${error.message}`);
@@ -99,12 +99,18 @@ async function createNpbPacket({
 
 async function getTotalNpbPacketById(npbId) {
   try {
-    const [totalHttpCount, totalHttpsCount, totalOHttpCount, totalOTlsCount, totalRxCount] = await Promise.all([
-      NpbPacket.sum('http_count', { where: { npb_id: npbId } }),
-      NpbPacket.sum('https_count', { where: { npb_id: npbId } }),
-      NpbPacket.sum('tx_o_http_count', { where: { npb_id: npbId } }),
-      NpbPacket.sum('tx_o_tls_count', { where: { npb_id: npbId } }),
-      NpbPacket.sum('rx_i_count', { where: { npb_id: npbId } }),
+    const [
+      totalHttpCount,
+      totalHttpsCount,
+      totalOHttpCount,
+      totalOTlsCount,
+      totalRxCount,
+    ] = await Promise.all([
+      NpbPacket.sum("http_count", { where: { npb_id: npbId } }),
+      NpbPacket.sum("https_count", { where: { npb_id: npbId } }),
+      NpbPacket.sum("tx_o_http_count", { where: { npb_id: npbId } }),
+      NpbPacket.sum("tx_o_tls_count", { where: { npb_id: npbId } }),
+      NpbPacket.sum("rx_i_count", { where: { npb_id: npbId } }),
     ]);
 
     // Return the totals
@@ -136,7 +142,7 @@ async function getNpbPacketById(npbId) {
 }
 
 async function getNpbPacketByIdWithPagination(npbId, page, pageSize) {
-  const offset = page * pageSize;
+  const offset = (page - 1) * pageSize;
   const limit = pageSize;
 
   try {
@@ -164,13 +170,10 @@ async function getTotalCountPacketById(npbId) {
     });
 
     return npbPackets;
-  }
-  catch (error) {
+  } catch (error) {
     throw new Error("Error finding npb_packet by npb ID");
   }
-
 }
-
 
 async function createHeartbeat(npb_id, time) {
   try {
