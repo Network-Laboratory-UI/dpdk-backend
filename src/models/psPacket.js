@@ -26,67 +26,99 @@ const PsPacket = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_count: {
+    rx_i_http_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_0_count: {
+    tx_i_http_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_size: {
+    rx_i_http_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_0_size: {
+    tx_i_http_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_drop: {
+    rx_i_http_drop: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_error: {
+    rx_i_http_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_0_error: {
+    tx_i_http_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_0_mbuf: {
+    rx_i_http_mbuf: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_count: {
+    rx_i_tls_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_1_count: {
+    tx_i_tls_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_size: {
+    rx_i_tls_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_1_size: {
+    tx_i_tls_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_drop: {
+    rx_i_tls_drop: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_error: {
+    rx_i_tls_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_1_error: {
+    tx_i_tls_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_1_mbuf: {
+    rx_i_tls_mbuf: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_count: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_count: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_drop: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_error: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_error: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_mbuf: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
