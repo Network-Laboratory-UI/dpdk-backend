@@ -130,7 +130,15 @@ const NpbPacket = db.define(
       type: DataTypes.DATE,
       allowNull: false,
     },
-    throughput: {
+    throughput_i: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    throughput_o_http: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    throughput_o_tls: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },

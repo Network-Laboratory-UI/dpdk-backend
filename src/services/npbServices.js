@@ -55,7 +55,9 @@ async function createNpbPacket({
   tx_o_tls_error,
   rx_o_tls_mbuf,
   time,
-  throughput,
+  throughput_i,
+  throughput_o_http,
+  throughput_o_tls,
   service_time,
 }) {
   try {
@@ -89,7 +91,9 @@ async function createNpbPacket({
       tx_o_tls_error,
       rx_o_tls_mbuf,
       time,
-      throughput,
+      throughput_i,
+      throughput_o_http,
+      throughput_o_tls,
       service_time,
     });
   } catch (error) {
