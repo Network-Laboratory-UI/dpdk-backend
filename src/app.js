@@ -9,7 +9,7 @@ const cors = require("cors");
 const npbController = require("./controllers/npbController");
 const psContoller = require("./controllers/psController");
 const cron = require("node-cron");
-const producer = require("./config/kafkaConfig");
+const { producer } = require("./config/kafkaConfig");
 
 const app = express();
 

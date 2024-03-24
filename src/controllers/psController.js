@@ -1,6 +1,6 @@
 const psService = require("../services/psServices");
 const psUtils = require("../utils/psUtils");
-const producer = require("../config/kafkaConfig");
+const { producer } = require("../config/kafkaConfig");
 
 async function getAllPSs(req, res) {
   try {
