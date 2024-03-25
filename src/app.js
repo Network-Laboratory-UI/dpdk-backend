@@ -10,6 +10,7 @@ const npbController = require("./controllers/npbController");
 const psContoller = require("./controllers/psController");
 const cron = require("node-cron");
 const { producer } = require("./config/kafkaConfig");
+const psUtils = require('./utils/psUtils');
 
 const app = express();
 
@@ -27,8 +28,11 @@ app.use(cors(corsOptions));
 
 // Connect to the database
 db.authenticate()
-  .then(() => {
+  .then(async() => {
     console.log("Database connected");
+
+        // Call the function to get all blocked PS and send them to Kafka
+    await psUtils.getAllBlockedPs();
   })
   .catch((err) => {
     console.error("Unable to connect to the database:", err);

@@ -20,11 +20,14 @@ async function init() {
     // Create topics
     try {
       await admin.createTopics({
-        topics: [{ topic: "logging-dashboard", numPartitions: 1 }],
+        topics: [
+          { topic: "logging-dashboard", numPartitions: 1 },
+          { topic: "dpdk-blocked-list", numPartitions: 1 } // new topic added here
+        ],
       });
-      console.log("Topic 'logging-dashboard' created successfully");
+      console.log("Topics 'logging-dashboard' and 'dpdk-blocked-list' created successfully");
     } catch (error) {
-      console.error("Error creating topic: ", error);
+      console.error("Error creating topics: ", error);
     }
 
     await admin.disconnect();

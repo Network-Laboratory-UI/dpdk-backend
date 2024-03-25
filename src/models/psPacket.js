@@ -18,11 +18,19 @@ const PsPacket = db.define(
         key: "id",
       },
     },
-    rstClient: {
+    rstClient_http: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rstServer: {
+    rstServer_http: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rstClient_tls: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rstServer_tls: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -90,35 +98,67 @@ const PsPacket = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_o_count: {
+    rx_o_http_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_o_count: {
+    tx_o_http_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_o_size: {
+    rx_o_http_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_o_size: {
+    tx_o_http_size: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_o_drop: {
+    rx_o_http_drop: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_o_error: {
+    rx_o_http_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    tx_o_error: {
+    tx_o_http_error: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    rx_o_mbuf: {
+    rx_o_http_mbuf: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_count: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_tls_count: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_tls_size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_drop: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_error: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    tx_o_tls_error: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    rx_o_tls_mbuf: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -126,10 +166,22 @@ const PsPacket = db.define(
       type: DataTypes.DATE,
       allowNull: false,
     },
-    throughput: {
+    throughput_i_http: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    throughput_i_tls: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    throughput_o_http: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    throughput_o_tls: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    }
   },
   {
     tableName: "ps_packet",

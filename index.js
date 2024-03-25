@@ -19,11 +19,11 @@ process.on("SIGINT", async () => { // Make this function async
   // Delete topics
   try {
     await admin.deleteTopics({
-      topics: [ "logging-dashboard" ],
+      topics: [ "logging-dashboard", "dpdk-blocked-list" ], // add other topic names here
     });
-    console.log("Topic 'logging-dashboard' deleted successfully");
+    console.log("Topics 'logging-dashboard' and 'dpdk-blocked-list' deleted successfully");
   } catch (error) {
-    console.error("Error deleting topic: ", error);
+    console.error("Error deleting topics: ", error);
   }
 
   await admin.disconnect(); // Disconnect admin

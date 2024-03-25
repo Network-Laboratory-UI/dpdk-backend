@@ -21,7 +21,7 @@ const PsBlockedList = db.define(
     },
     ip_add: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     hit_count: {
       type: DataTypes.INTEGER,
