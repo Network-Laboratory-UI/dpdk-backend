@@ -4,10 +4,29 @@ const { producer } = require("../config/kafkaConfig");
 
 async function getAllPSs(req, res) {
   try {
-    const psInstances = await psService.getAllModifiedPSs();
-    res.json(psInstances.sort((a, b) => a.name.localeCompare(b.name)));
+    const pss = await psService.getAllModifiedPSs();
+    const sortParam = req.query.sortParam || "name"; // Default sort parameter is 'name'
+
+    if (!["name", "createdAt", "status"].includes(sortParam)) {
+      return res.status(400).json({ error: "Invalid sort parameter" });
+    }
+
+    res.json(
+      pss.sort((a, b) => {
+        if (typeof a[sortParam] === "string") {
+          return a[sortParam].localeCompare(b[sortParam]);
+        } else if (
+          typeof a[sortParam] === "number" ||
+          a[sortParam] instanceof Date
+        ) {
+          return a[sortParam] - b[sortParam];
+        } else {
+          return 0;
+        }
+      })
+    );
   } catch (error) {
-    console.error("Error getting PS instances:", error);
+    console.error("Error getting pss:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
@@ -136,7 +155,7 @@ async function createPsPacket(req, res) {
         throughput_i_http,
         throughput_i_tls,
         throughput_o_http,
-        throughput_o_tls
+        throughput_o_tls,
       } = packet;
 
       // Check if the ps with the provided ps_id exists
@@ -187,7 +206,7 @@ async function createPsPacket(req, res) {
         throughput_i_http,
         throughput_i_tls,
         throughput_o_http,
-        throughput_o_tls
+        throughput_o_tls,
       });
 
       results.push(psPacket);
@@ -261,11 +280,8 @@ async function getPsPacketByPsIdWithPagination(req, res) {
   }
 
   try {
-    const { count, rows: psPackets } = await psService.getPsPacketByIdWithPagination(
-      psId,
-      page,
-      pageSize
-    ); // Pass pagination parameters to service
+    const { count, rows: psPackets } =
+      await psService.getPsPacketByIdWithPagination(psId, page, pageSize); // Pass pagination parameters to service
 
     if (psPackets.length === 0) {
       return res.json({
@@ -274,7 +290,6 @@ async function getPsPacketByPsIdWithPagination(req, res) {
     }
 
     res.json({ count, psPackets }); // Send response with packets and total count
-
   } catch (error) {
     console.error("Error getting ps_packet:", error);
     res.status(500).json({ error: "Internal Server Error" });

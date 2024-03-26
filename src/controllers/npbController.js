@@ -5,7 +5,21 @@ const npbUtils = require("../utils/npbUtils");
 async function getAllNpbs(req, res) {
   try {
     const npbs = await npbService.getAllModifiedNpbs();
-    res.json(npbs.sort((a, b) => a.name.localeCompare(b.name)));
+    const sortParam = req.query.sortParam || 'name'; // Default sort parameter is 'name'
+
+    if (!['name', 'createdAt', 'status'].includes(sortParam)) {
+      return res.status(400).json({ error: "Invalid sort parameter" });
+    }
+
+    res.json(npbs.sort((a, b) => {
+      if (typeof a[sortParam] === 'string') {
+        return a[sortParam].localeCompare(b[sortParam]);
+      } else if (typeof a[sortParam] === 'number' || a[sortParam] instanceof Date) {
+        return a[sortParam] - b[sortParam];
+      } else {
+        return 0;
+      }
+    }));
   } catch (error) {
     console.error("Error getting npbs:", error);
     res.status(500).json({ error: "Internal Server Error" });
